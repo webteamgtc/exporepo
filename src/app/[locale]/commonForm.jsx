@@ -1,0 +1,400 @@
+"use client";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import axios from "axios";
+import { useEffect, useState } from "react";
+import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
+import { parsePhoneNumberFromString } from "libphonenumber-js";
+import "react-phone-number-input/style.css";
+import OtpInput from "react-otp-input";
+import { countryList } from "../context/useCountriesDetails";
+import { useLocationDetail } from "../context/useLocationDetail";
+import { toast } from "react-toastify";
+import Select from "react-select";
+import { useTranslations, useLocale } from "next-intl";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { useRouter } from "@/i18n/navigation";
+
+
+const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
+    const { countryData } = useLocationDetail();
+    const [otpLoading, setOtpLoading] = useState(false);
+    const [showOtp, setShowOtp] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [storedOtp, setStoredOtp] = useState("");
+    const [isDisable, setIsDisable] = useState(true);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    const router = useRouter();
+    const t = useTranslations("home.form");
+    const locale = useLocale();
+
+    // prepare country options
+    const options = countryList.map((item) => ({
+        value: item.en_short_name,
+        label: (
+            <div className="flex items-center gap-2">
+                <img
+                    src={`https://flagcdn.com/w40/${item.alpha_2_code.toLowerCase()}.png`}
+                    alt={item.en_short_name}
+                    className="w-5 h-4 object-cover"
+                />
+                <span>{item.en_short_name}</span>
+            </div>
+        ),
+    }));
+
+    const getIso2ByCountryName = (name) => {
+        const hit = countryList.find((c) => c.en_short_name === name);
+        return hit?.alpha_2_code;
+    };
+
+    // generate password
+    const generatePassword = (length = 12) => {
+        const chars =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+        return Array.from(
+            { length },
+            () => chars[Math.floor(Math.random() * chars.length)]
+        ).join("");
+    };
+
+    // formik setup
+    const formik = useFormik({
+        initialValues: {
+            nickname: "",
+            last_name: "",
+            email: "",
+            phone: "",
+            country: "",
+            otp: "",
+            password: "",
+            confirmPassword: "",
+            invitation: "",
+            terms: false,
+        },
+        validationSchema: Yup.object({
+            nickname: Yup.string().required(t("errors.firstNameRequired")),
+            last_name: Yup.string().required(t("errors.lastNameRequired")),
+            email: Yup.string()
+                .email(t("errors.emailInvalid"))
+                .required(t("errors.emailRequired")),
+            phone: Yup.string()
+                .required(t("errors.phoneRequired"))
+                .test("is-valid-e164", t("errors.phoneInvalid"), (value) => {
+                    if (!value) return false;
+                    return isValidPhoneNumber(value);
+                })
+                .test(
+                    "matches-selected-country",
+                    "Number doesn’t match selected country",
+                    function (value) {
+                        const selectedCountryName = this.parent.country;
+                        if (!value || !selectedCountryName) return true;
+                        const selectedIso2 = getIso2ByCountryName(selectedCountryName);
+                        if (!selectedIso2) return true;
+                        const pn = parsePhoneNumberFromString(value);
+                        if (!pn) return false;
+                        return pn.country === selectedIso2;
+                    }
+                ),
+            country: Yup.string().required(t("errors.countryRequired")),
+            otp: Yup.string()
+                .length(6, t("errors.otpLength"))
+                .required(t("errors.otpRequired")),
+            password: Yup.string()
+                .min(6, t("errors.passwordMin"))
+                .required(t("errors.passwordRequired")),
+            confirmPassword: Yup.string()
+                .oneOf([Yup.ref("password")], t("errors.passwordMatch"))
+                .required(t("errors.confirmPasswordRequired")),
+            terms: Yup.bool().oneOf([true], t("errors.termsRequired")),
+        }),
+        onSubmit: async (values) => {
+            try {
+                setLoading(true);
+                await axios.post(zapierUrl, JSON.stringify(values));
+                toast.success(t("thankYou1"));
+                localStorage.setItem("user", JSON.stringify(values));
+                router.push(successPath);
+                formik.resetForm()
+            } catch (err) {
+                toast.error("Something went wrong");
+            } finally {
+                setLoading(false);
+            }
+        },
+    });
+
+    // send OTP
+    const sendVerificationCode = () => {
+        setOtpLoading(true);
+        axios
+            .post(`/api/otp-smtp`, {
+                email: formik.values.email,
+                first_name: formik.values.nickname,
+                type: "0",
+                locale,
+            })
+            .then((res) => {
+                if (res?.data?.message) {
+                    setShowOtp(true);
+                    setStoredOtp(res?.data?.message?.slice(4, -3));
+                    toast.success(t("otpSent"));
+                } else {
+                    toast.error(res?.data?.message);
+                }
+            })
+            .finally(() => setOtpLoading(false));
+    };
+
+    // verify OTP
+    const verifyOtpCode = () => {
+        if (formik.values.otp === storedOtp) {
+            toast.success(t("otpSuccess"));
+            setShowOtp(false);
+            setIsDisable(false);
+        } else {
+            toast.error(t("otpFail"));
+        }
+    };
+
+    const color = isMobile ? "text-[#fff]" : "text-[#666684]"
+
+    return (
+        <form onSubmit={formik.handleSubmit} className="space-y-4">
+            {/* First + Last Name */}
+            <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                    <label className={`text-sm ${color} mb-1`}>{t("firstName")}</label>
+                    <input
+                        type="text"
+                        placeholder={t("firstName")}
+                        {...formik.getFieldProps("nickname")}
+                        className={`w-full border px-3 py-2 ${isMobile ? "bg-[#33335b]" : ""} rounded-md ${formik.touched.nickname && formik.errors.nickname
+                            ? "border-red-500"
+                            : "border-gray-300"
+                            }`}
+                    />
+                    {formik.touched.nickname && formik.errors.nickname && (
+                        <p className="text-xs text-red-500">{formik.errors.nickname}</p>
+                    )}
+                </div>
+                <div>
+                    <label className={`text-sm ${color} mb-1`}>{t("lastName")}</label>
+                    <input
+                        type="text"
+                        placeholder={t("lastName")}
+                        {...formik.getFieldProps("last_name")}
+                        className={`w-full border px-3 py-2 rounded-md ${isMobile ? "bg-[#33335b]" : ""} ${formik.touched.last_name && formik.errors.last_name
+                            ? "border-red-500"
+                            : "border-gray-300"
+                            }`}
+                    />
+                    {formik.touched.last_name && formik.errors.last_name && (
+                        <p className="text-xs text-red-500">{formik.errors.last_name}</p>
+                    )}
+                </div>
+            </div>
+
+            {/* Email + OTP */}
+            <div>
+                <label className={`text-sm ${color} mb-1`}>{t("email")}</label>
+                <div className="relative">
+                    <input
+                        type="email"
+                        placeholder={t("email")}
+                        {...formik.getFieldProps("email")}
+                        className={`w-full border px-3 py-2 rounded-md ${isMobile ? "bg-[#33335b]" : ""} ${formik.touched.email && formik.errors.email
+                            ? "border-red-500"
+                            : "border-gray-300"
+                            }`}
+                    />
+                    <button
+                        type="button"
+                        onClick={sendVerificationCode}
+                        className="absolute min-h-[41px] top-0 right-0 bg-[#666684] text-white px-3 py-1 rounded-md text-xs"
+                    >
+                        {otpLoading ? t("sending") : t("getCode")}
+                    </button>
+                </div>
+                {formik.touched.email && formik.errors.email && (
+                    <p className="text-xs text-red-500">{formik.errors.email}</p>
+                )}
+            </div>
+
+            {showOtp && (
+                <div>
+                    <p className="text-sm mb-2">{t("otp")}</p>
+                    <div className=" flex gap-3 items-center">
+                        <OtpInput
+                            value={formik.values.otp}
+                            onChange={(otp) => formik.setFieldValue("otp", otp)}
+                            numInputs={6}
+                            containerStyle={{
+                                display: "flex",
+                                gap: "3px"
+                            }}
+                            isInputNum
+                            renderInput={(props) => (
+                                <input
+                                    {...props}
+                                    type="tel" // Triggers number pad
+                                    inputMode="numeric" // Helps mobile keyboard detect numeric input
+                                    pattern="[0-9]*" // Optional: enforce numeric
+                                />
+                            )}
+
+                            inputStyle={{
+                                fontSize: "16px", // ✅ critical to stop iOS zoom
+                                borderRadius: "5px",
+                                paddingBottom: "10px",
+                                paddingTop: "10px",
+                                width: "15%",
+                                backgroundColor: "#fff",
+                                color: "#666684",
+                                fontWeight: "700",
+                                outlineColor: "#666684",
+                                border:
+                                    formik.touched.otp && formik.errors.otp
+                                        ? "1px solid red"
+                                        : "1px solid #666684",
+                            }}
+                        />
+                        <button
+                            type="button"
+                            onClick={verifyOtpCode}
+                            className=" bg-[#666684] text-white px-3 py-1 rounded-md text-sm"
+                        >
+                            {t("verifyCode")}
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Phone */}
+            <div>
+                <label className={`text-sm ${color} mb-1`}>{t("phone")}</label>
+                <PhoneInput
+                    international
+                    defaultCountry={countryData?.country || "AE"}
+                    value={formik.values.phone}
+                    onChange={(phone) => formik.setFieldValue("phone", phone)}
+                    className={`w-full border px-3 py-2 ${isMobile ? "bg-[#33335b]" : ""} rounded-md ${formik.touched.phone && formik.errors.phone
+                        ? "border-red-500"
+                        : "border-gray-300"
+                        }`}
+                />
+                {formik.touched.phone && formik.errors.phone && (
+                    <p className="text-xs text-red-500">{formik.errors.phone}</p>
+                )}
+            </div>
+
+            {/* Country */}
+            <div>
+                <label className={`text-sm ${color} mb-1`}>{t("country")}</label>
+                <Select
+                    name="country"
+                    options={options}
+                    onChange={(opt) => formik.setFieldValue("country", opt?.value)}
+                    onBlur={() => formik.setFieldTouched("country", true)}
+                    value={options.find((opt) => opt.value === formik.values.country)}
+                />
+                {formik.touched.country && formik.errors.country && (
+                    <p className="text-xs text-red-500">{formik.errors.country}</p>
+                )}
+            </div>
+
+            {/* Password + Confirm Password */}
+            <div className="grid sm:grid-cols-1 gap-4">
+                {/* Password */}
+                <div className="relative">
+                    <label className={`text-sm ${color} mb-1`}>Password</label>
+                    <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder={t("password")}
+                        {...formik.getFieldProps("password")}
+                        className={`w-full border px-3 py-2 ${isMobile ? "bg-[#33335b]" : ""} rounded-md pr-10 ${formik.touched.password && formik.errors.password
+                            ? "border-red-500"
+                            : "border-gray-300"
+                            }`}
+                    />
+                    <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-9 text-gray-500"
+                    >
+                        {showPassword ? <FaEyeSlash /> : <FaEye />}
+                    </button>
+                    {formik.touched.password && formik.errors.password && (
+                        <p className="text-xs text-red-500">{formik.errors.password}</p>
+                    )}
+                </div>
+
+                {/* Confirm Password */}
+                <div className="relative">
+                    <label className={`text-sm ${color} mb-1`}>Confirm Password</label>
+                    <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        {...formik.getFieldProps("confirmPassword")}
+                        placeholder={t("confirmPassword")}
+                        className={`w-full border px-3 py-2 ${isMobile ? "bg-[#33335b]" : ""} rounded-md pr-10 ${formik.touched.confirmPassword && formik.errors.confirmPassword
+                            ? "border-red-500"
+                            : "border-gray-300"
+                            }`}
+                    />
+                    <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-9 text-gray-500"
+                    >
+                        {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                    </button>
+                    {formik.touched.confirmPassword && formik.errors.confirmPassword && (
+                        <p className="text-xs text-red-500">{formik.errors.confirmPassword}</p>
+                    )}
+                </div>
+
+            </div>
+
+            {/* Invitation */}
+            <div>
+                <label className={`text-sm ${color} mb-1`}>Invitation Code(Optional)</label>
+                <input
+                    type="text"
+                    {...formik.getFieldProps("invitation")}
+                    className={`w-full border px-3 py-2 ${isMobile ? "bg-[#33335b]" : ""}  rounded-md border-gray-300`}
+                />
+            </div>
+
+            {/* Terms */}
+            <div className="flex items gap-2">
+                <input
+                    type="checkbox"
+                    id="terms"
+                    {...formik.getFieldProps("terms")}
+                    className="h-5 w-5"
+                />
+                <label htmlFor="terms" className="text-xs">
+                    {t("termsText")}
+                </label>
+            </div>
+            {formik.touched.terms && formik.errors.terms && (
+                <p className="text-xs text-red-500">{formik.errors.terms}</p>
+            )}
+
+            {/* Submit */}
+            <button
+                type="submit"
+                // disabled={isDisable || loading}
+                className={`w-full  ${isMobile ? "text-[#000032]" : "text-white"} py-3 rounded-xl font-medium text-sm disabled:opacity-50`}
+                style={{ background: isMobile ? "#fff" : "linear-gradient(135deg, #293794 0%, #000021 100%)" }}
+            >
+                {t("btnText")}
+            </button>
+        </form>
+    );
+};
+
+export default CommonMainForm;
