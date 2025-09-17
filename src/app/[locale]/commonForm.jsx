@@ -31,7 +31,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
     const locale = useLocale();
 
     // prepare country options
-    const options = countryList.map((item) => ({
+    const options = countryList?.map((item) => ({
         value: item.en_short_name,
         label: (
             <div className="flex items-center gap-2">
@@ -44,6 +44,18 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
             </div>
         ),
     }));
+
+        useEffect(() => {
+        if (countryData?.country) {
+            const filterData = countryList.find(
+                (item) => item?.en_short_name == countryData.country
+            );
+            formik.setFieldValue(
+                "country",
+                filterData ? filterData?.en_short_name : ""
+            );
+        }
+    }, [countryData?.country, countryList]);
 
     const getIso2ByCountryName = (name) => {
         const hit = countryList.find((c) => c.en_short_name === name);
@@ -278,7 +290,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                 <label className={`text-sm ${color} mb-1`}>{t("phone")}</label>
                 <PhoneInput
                     international
-                    defaultCountry={countryData?.country || "AE"}
+                    defaultCountry={countryData?.raw?.country_code || "AE"}
                     value={formik.values.phone}
                     onChange={(phone) => formik.setFieldValue("phone", phone)}
                     className={`w-full border px-3 py-2 ${isMobile ? "bg-[#33335b]" : ""} rounded-md ${formik.touched.phone && formik.errors.phone
