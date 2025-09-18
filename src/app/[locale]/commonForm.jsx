@@ -45,7 +45,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
         ),
     }));
 
-        useEffect(() => {
+    useEffect(() => {
         if (countryData?.country) {
             const filterData = countryList.find(
                 (item) => item?.en_short_name == countryData.country
@@ -61,6 +61,11 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
         const hit = countryList.find((c) => c.en_short_name === name);
         return hit?.alpha_2_code;
     };
+
+    const api = axios.create({
+        baseURL: "https://mygtcportal.com",
+        timeout: 15000,
+    });
 
     // generate password
     const generatePassword = (length = 12) => {
@@ -83,7 +88,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
             otp: "",
             password: "",
             confirmPassword: "",
-            invitation: "",
+            invitation: "8owwwwwwzcowwwww",
             terms: false,
         },
         validationSchema: Yup.object({
@@ -125,12 +130,29 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
         }),
         onSubmit: async (values) => {
             try {
-                setLoading(true);
-                await axios.post(zapierUrl, JSON.stringify(values));
-                toast.success(t("thankYou1"));
-                localStorage.setItem("user", JSON.stringify(values));
-                router.push(successPath);
-                formik.resetForm()
+                const res = await fetch("/api/create-client", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        user_account_type: 0,
+                        country: "PK",
+                        first_name: "Adi",
+                        last_name: "Test",
+                        email: "adi120@tgmail.com",
+                        area_code: "92",
+                        phone: "36565897454",
+                        pwd: "test@qQ123",
+                    }),
+                });
+
+                const data = await res.json();
+                console.log("Proxy response:", data);
+                // await axios.post(zapierUrl, JSON.stringify(values));
+
+                // toast.success(t("thankYou1"));
+                // localStorage.setItem("user", JSON.stringify(values));
+                // router.push(successPath);
+                // formik.resetForm()
             } catch (err) {
                 toast.error("Something went wrong");
             } finally {
