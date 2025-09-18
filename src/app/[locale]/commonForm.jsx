@@ -25,7 +25,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
     const [isDisable, setIsDisable] = useState(true);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    console.log({countryData})
+    console.log({ countryData })
 
     const router = useRouter();
     const t = useTranslations("home.form");
@@ -49,7 +49,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
     useEffect(() => {
         if (countryData?.country) {
             const filterData = countryList.find(
-                (item) => item?.en_short_name == countryData.country
+                (item) => item?.en_short_name == countryData.country || item?.alpha_2_code == countryData.country
             );
             formik.setFieldValue(
                 "country",
@@ -313,7 +313,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                 <label className={`text-sm ${color} mb-1`}>{t("phone")}</label>
                 <PhoneInput
                     international
-                    defaultCountry={countryData?.raw?.country_code || "AE"}
+                    defaultCountry={countryData?.raw?.country_code || countryData?.raw?.country || "AE"}
                     value={formik.values.phone}
                     onChange={(phone) => formik.setFieldValue("phone", phone)}
                     className={`w-full border px-3 py-2 ${isMobile ? "bg-[#33335b]" : ""} rounded-md ${formik.touched.phone && formik.errors.phone
