@@ -6,11 +6,14 @@ import { useTranslations } from "next-intl";
 import { renderSvg } from "../config/svgs";
 import LanguageSelect from "./LanguageSelect";
 import Header from "./header";
+import Meta from "./components/Meta";
 
 export default function GTCRegisterWithDesign() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const t = useTranslations("home.banner");
   return (
+    <>
+    <Meta title="Get 5,000 USC to Trade. No Deposit Needed!" description="Fill in your details, activate your GTC Cent trading account, and start trading with a 5,000 USC bonus today."/>
     <div className="min-h-screen bg-[#0F143A] text-white">
       {/* Top Bar */}
       <Header />
@@ -152,5 +155,6 @@ export default function GTCRegisterWithDesign() {
         </div>
       </div>
     </div>
+     </>
   );
 }
