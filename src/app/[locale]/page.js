@@ -18,7 +18,7 @@ export default function GTCRegisterWithDesign() {
       {/* Top Bar */}
       <Header />
 
-      {/* Hero Section with gradient bg, candles overlay, and bottom curve */}
+      {/* Hero Section with gradient bg, candles overlay, and bottom curve */}  
       <section className="relative">
         {/* Gradient base */}
         <div
