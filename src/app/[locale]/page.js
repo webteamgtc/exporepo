@@ -24,7 +24,7 @@ export default function GTCRegisterWithDesign() {
         <div
           className="absolute inset-0 -z-10"
           style={{
-            background: "linear-gradient(135deg,#293794 0%,#000021 100%)", 
+            background: "linear-gradient(135deg,#293794 0%,#000021 100%)",  
           }}
         />
 
