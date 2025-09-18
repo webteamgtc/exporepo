@@ -25,6 +25,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
     const [isDisable, setIsDisable] = useState(true);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    console.log({countryData})
 
     const router = useRouter();
     const t = useTranslations("home.form");
