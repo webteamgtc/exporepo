@@ -122,7 +122,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                 .length(6, t("errors.otpLength"))
                 .required(t("errors.otpRequired")),
             password: Yup.string()
-                .min(6, t("errors.passwordMin"))
+                .min(6, ("Min Password"))
                 .required(t("errors.passwordRequired")),
             confirmPassword: Yup.string()
                 .oneOf([Yup.ref("password")], t("errors.passwordMatch"))
