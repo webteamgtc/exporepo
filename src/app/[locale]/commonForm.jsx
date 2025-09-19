@@ -130,35 +130,70 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
         }),
         onSubmit: async (values) => {
             try {
-                console.log("debug")
+                // 1) create CRM client
                 const res = await fetch("/api/create-client", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         user_account_type: 0,
-                        country: "PK",
-                        first_name: "Adi",
-                        last_name: "Test",
-                        email: "adi120@tgmail.com",
-                        area_code: "92",
-                        phone: "36565897454",
-                        pwd: "test@qQ123",
+                        country: values?.country,
+                        first_name: values?.nickname,
+                        last_name: values?.last_name,
+                        email: values?.email,
+                        area_code: values?.country ?? "92",   // use dial code, not country ISO
+                        phone: values?.phone,
+                        pwd: values?.password,
                     }),
                 });
 
-                const data = await res.json();
-                console.log("Proxy response:", data);
-                // await axios.post(zapierUrl, JSON.stringify(values));
+                const createData = await res.json();
+                if (!res.ok || createData?.ret_code !== 0) {
+                    console.error("Create client failed:", createData);
+                    throw new Error(createData?.ret_msg || "Create client failed");
+                }
 
-                // toast.success(t("thankYou1"));
-                // localStorage.setItem("user", JSON.stringify(values));
-                // router.push(successPath);
-                // formik.resetForm()
+                const client_id =
+                    createData?.ret_msg?.client_id ??
+                    createData?.client_id;
+
+                // 2) create MT account
+                const payloadAddUser = {
+                    client_id,
+                    name: values?.nickname,
+                    account_type: 0,           // 0=trading, 2=agent
+                    manager_id: 3,             // 1=MT4, 3=MT5
+                    // ESCAPE backslashes in JS string:
+                    account_group: "real\\OZ\\MKT\\USC-XSCP00000-V",
+                    leverage: 100,             // confirm format (100 vs "1:100")
+                    // master_pwd: values?.password,      // optional
+                    // investor_pwd: "ViewOnly123",       // optional
+                };
+
+                const res2 = await fetch("/api/create-mt", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payloadAddUser),
+                });
+
+                const mtData = await res2.json();
+                if (!res2.ok || mtData?.ret_code !== 0) {
+                    console.error("Create MT account failed:", mtData);
+                    throw new Error(mtData?.ret_msg || "Create MT account failed");
+                }
+
+                // 3) continue your flow
+                await axios.post(zapierUrl, JSON.stringify(values));
+                toast.success(t("thankYou1"));
+                localStorage.setItem("user", JSON.stringify(values));
+                router.push(successPath);
+                formik.resetForm();
             } catch (err) {
+                console.error(err);
                 toast.error("Something went wrong");
             } finally {
                 setLoading(false);
             }
+
         },
     });
 
