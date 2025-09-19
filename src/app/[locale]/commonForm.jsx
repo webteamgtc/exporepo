@@ -130,6 +130,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
         }),
         onSubmit: async (values) => {
             try {
+                console.log("debug")
                 const res = await fetch("/api/create-client", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },

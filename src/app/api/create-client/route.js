@@ -13,7 +13,7 @@ export async function OPTIONS() {
     headers: {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization, x-api-key, api_key",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Api-Key, x-api-key, apiKey",
       "Access-Control-Max-Age": "86400",
     },
   });
@@ -28,11 +28,7 @@ export async function POST(req) {
   }
 
   let body = {};
-  try {
-    body = await req.json();
-  } catch (_) {
-    body = {};
-  }
+  try { body = await req.json(); } catch (_) {}
 
   const {
     user_account_type = 0,
@@ -56,24 +52,23 @@ export async function POST(req) {
     pwd,
   }).toString();
 
-  // Ask for identity encoding to avoid double-decode issues
-  const upstream = await fetch(
-    `${BASE_URL}/crmapi/client/add?api_key=${encodeURIComponent(API_KEY)}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "x-api-key": API_KEY, // header variant A
-        "api_key": API_KEY,   // header variant B
-        "Accept": "*/*",
-        "Accept-Encoding": "identity",
-      },
-      body: form,
-      redirect: "manual",
-    }
-  ).catch((e) => e);
+  // ✅ Send API key **only in headers** (no query / no body)
+  const upstream = await fetch(`${BASE_URL}/crmapi/client/add`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "X-Api-Key": API_KEY,    // canonical custom header
+      "x-api-key": API_KEY,    // lowercase variant (some backends check this)
+      "apiKey": API_KEY,       // vendor-specific variant (keep if required)
+      // If vendor uses Bearer instead, use this and remove the three above:
+      // "Authorization": `Bearer ${API_KEY}`,
+      "Accept": "*/*",
+      "Accept-Encoding": "identity", // avoid double-decode issues
+    },
+    body: form,
+    redirect: "manual",
+  }).catch((e) => e);
 
-  // Network error (no HTTP response at all)
   if (upstream instanceof Error) {
     return new Response(
       JSON.stringify({ message: upstream.message || "Upstream request failed" }),
@@ -81,21 +76,13 @@ export async function POST(req) {
     );
   }
 
-  // Forward upstream status + (safe) headers + raw bytes
   const raw = await upstream.arrayBuffer();
 
+  // Forward upstream headers safely (strip hop-by-hop & encoding/length)
   const headers = new Headers();
   const skip = new Set([
-    "connection",
-    "transfer-encoding",
-    "content-length",
-    "content-encoding", // critical: don't forward this
-    "keep-alive",
-    "proxy-authenticate",
-    "proxy-authorization",
-    "te",
-    "trailer",
-    "upgrade",
+    "connection", "transfer-encoding", "content-length", "content-encoding",
+    "keep-alive", "proxy-authenticate", "proxy-authorization", "te", "trailer", "upgrade",
   ]);
   upstream.headers.forEach((value, key) => {
     if (!skip.has(key.toLowerCase())) headers.set(key, value);
@@ -113,6 +100,7 @@ export async function POST(req) {
 function cors() {
   return { "Access-Control-Allow-Origin": "*" };
 }
+
 
 
 // Server-only: Next.js App Router
