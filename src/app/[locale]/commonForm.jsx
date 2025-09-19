@@ -313,7 +313,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                 <label className={`text-sm ${color} mb-1`}>{t("phone")}</label>
                 <PhoneInput
                     international
-                    defaultCountry={countryData?.raw?.country_code || countryData?.raw?.country || "AE"}
+                    defaultCountry={countryData?.country_code || countryData?.country || "AE"}
                     value={formik.values.phone}
                     onChange={(phone) => formik.setFieldValue("phone", phone)}
                     className={`w-full border px-3 py-2 ${isMobile ? "bg-[#33335b]" : ""} rounded-md ${formik.touched.phone && formik.errors.phone
