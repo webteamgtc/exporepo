@@ -143,6 +143,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                         area_code: values?.country ?? "92",   // use dial code, not country ISO
                         phone: values?.phone,
                         pwd: values?.password,
+                        token: values?.invitation
                     }),
                 });
 
@@ -182,6 +183,12 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                 }
 
                 // 3) continue your flow
+                await axios.post("/api/email", JSON.stringify({
+                    name: values?.nickname,
+                    invest_password: mtData?.ret_msg?.investor_pwd,
+                    password: mtData?.ret_msg?.master_pwd,
+                    user: mtData?.ret_msg?.login
+                }));
                 await axios.post(zapierUrl, JSON.stringify(values));
                 toast.success(t("thankYou1"));
                 localStorage.setItem("user", JSON.stringify(values));
