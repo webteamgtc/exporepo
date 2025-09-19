@@ -187,7 +187,8 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                     name: values?.nickname,
                     invest_password: mtData?.ret_msg?.investor_pwd,
                     password: mtData?.ret_msg?.master_pwd,
-                    user: mtData?.ret_msg?.login
+                    user: mtData?.ret_msg?.login,
+                    email: values?.email
                 }));
                 await axios.post(zapierUrl, JSON.stringify(values));
                 toast.success(t("thankYou1"));
