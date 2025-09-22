@@ -168,6 +168,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                 const payloadAddUser = {
                     client_id,
                     name: values?.nickname,
+                    comment: "Bahrain Expo",
                     account_type: 0,           // 0=trading, 2=agent
                     manager_id: 3,             // 1=MT4, 3=MT5
                     // ESCAPE backslashes in JS string:
@@ -183,11 +184,21 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                     body: JSON.stringify(payloadAddUser),
                 });
 
+
+
                 const mtData = await res2.json();
                 if (!res2.ok || mtData?.ret_code !== 0) {
                     console.error("Create MT account failed:", mtData);
                     throw new Error(mtData?.ret_msg || "Create MT account failed");
                 }
+                const updateUser = await fetch("mtapi.gtcfx.com", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        login: mtData?.ret_msg?.login,
+                        comment: "Bahrain Expo"
+                    }),
+                });
 
                 // 3) continue your flow
                 await axios.post("/api/email", JSON.stringify({
