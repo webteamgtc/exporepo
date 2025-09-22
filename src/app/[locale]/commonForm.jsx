@@ -14,11 +14,14 @@ import Select from "react-select";
 import { useTranslations, useLocale } from "next-intl";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useRouter } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 
 
 const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
     const { countryData } = useLocationDetail();
     const [otpLoading, setOtpLoading] = useState(false);
+    const params = useSearchParams()
+    const token = params.get("token")
     const [showOtp, setShowOtp] = useState(false);
     const [loading, setLoading] = useState(false);
     const [storedOtp, setStoredOtp] = useState("");
@@ -55,7 +58,11 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                 filterData ? filterData?.en_short_name : ""
             );
         }
-    }, [countryData?.country, countryList]);
+        formik.setFieldValue(
+            "invitation",
+            token || ""
+        );
+    }, [countryData?.country, countryList, params]);
 
     const getIso2ByCountryName = (name) => {
         const hit = countryList.find((c) => c.en_short_name === name);
@@ -88,7 +95,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
             otp: "",
             password: "",
             confirmPassword: "",
-            invitation: "8owwwwwwzcowwwww",
+            invitation: token,
             terms: false,
         },
         validationSchema: Yup.object({
@@ -440,6 +447,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
             <div>
                 <label className={`text-sm ${color} mb-1`}>Invitation Code(Optional)</label>
                 <input
+                    disabled
                     type="text"
                     {...formik.getFieldProps("invitation")}
                     className={`w-full border px-3 py-2 ${isMobile ? "bg-[#33335b]" : ""}  rounded-md border-gray-300`}
