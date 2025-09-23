@@ -39,7 +39,7 @@ const ThankYouPage = () => {
 
     return (
         <>
-            <Meta title={t('partner.thankYoumeta.title')} description={t('partner.thankYoumeta.description')} />
+            <Meta title={t('home.thankYoumeta.title')} description={t('home.thankYoumeta.description')} />
             <Header />
             <ConfirmationThankYou user={user} />
             <HelpSection />
