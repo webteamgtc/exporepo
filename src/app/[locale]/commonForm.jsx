@@ -84,6 +84,8 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
         ).join("");
     };
 
+    console.log({ countryData })
+
     // formik setup
     const formik = useFormik({
         initialValues: {
@@ -190,10 +192,12 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                     throw new Error(mtData?.ret_msg || "Create MT account failed");
                 }
 
-                const userUpdate = await axios.post(`/api/mt5-server`, {
-                    Login: mtData?.ret_msg?.login,
-                    Comment: "Bahrain Expo"
-                })
+                // if (countryData?.country == "BH") {
+                    const userUpdate = await axios.post(`/api/mt5-server`, {
+                        Login: mtData?.ret_msg?.login,
+                        Comment: "Bahrain Expo"
+                    })
+                // }
 
                 // 3) continue your flow
                 await axios.post("/api/email", JSON.stringify({
