@@ -18,9 +18,7 @@ async function clientPipeline(credentials) {
     type: 3,
   };
 
-  const depositBalance = await mt5Instance.trade.updateTradeBalance(
-    depositPayload
-  );
+  const depositBalance = await mt5Instance.trade.updateTradeBalanceGet(depositPayload)
 
   if (!userResponse?.Login) {
     return {
