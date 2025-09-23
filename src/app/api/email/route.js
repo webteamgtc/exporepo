@@ -125,7 +125,7 @@ const generateEmailContent = (data) => {
           </a>
         </td>
         <td align="center" style="padding: 0 10px;">
-          <a href="https://download.mql5.com/cdn/mobile/mt5/android?server=GTCGlobalTrade-Server" style="background: linear-gradient(to right, #b68756, #7b6036); border-radius: 8px; color: #ffffff; font-weight: 600; padding: 12px 20px; text-decoration: none; display: inline-block;">
+          <a href="https://download.mql5.com/cdn/mobile/mt5/android?server=GTCGlobalTrade-Server" style="background-color: #b68756; border-radius: 8px; color: #ffffff; font-weight: 600; padding: 12px 20px; text-decoration: none; display: inline-block;">
             Mobile GTC Client Zone
           </a>
         </td>
@@ -285,14 +285,14 @@ Need Help?
 export async function POST(req) {
   const reqBody = await req.json();
   const mailOption = {
-    from: '"Edu Trade" <portal@mx4.gtcmail.com>',
+    from: '"Get 5,000 USC to Trade | GTC" <portal@mx4.gtcmail.com>',
     to: reqBody?.email,
   };
   try {
     await transporter.sendMail({
       ...mailOption,
       ...generateEmailContent(reqBody),
-      subject: `Attending the Museum of the Future IB Event`,
+      subject: `Get 5,000 USC to Trade. No Deposit Needed! | GTC`,
     });
     return NextResponse.json(
       { message: "Success", email: reqBody?.email },
