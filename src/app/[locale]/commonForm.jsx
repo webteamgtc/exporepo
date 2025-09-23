@@ -193,7 +193,6 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                 const userUpdate = await axios.post(`/api/mt5-server`, {
                     Login: mtData?.ret_msg?.login,
                     Comment: "Bahrain Expo"
-
                 })
 
                 // 3) continue your flow
