@@ -138,6 +138,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
             terms: Yup.bool().oneOf([true], t("errors.termsRequired")),
         }),
         onSubmit: async (values) => {
+            setLoading(true)
             try {
                 // 1) create CRM client
                 const res = await fetch("/api/create-client", {
@@ -483,7 +484,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
             {/* Submit */}
             <button
                 type="submit"
-                // disabled={isDisable || loading}
+                disabled={loading}
                 className={`w-full  ${isMobile ? "text-[#000032]" : "text-white"} py-3 rounded-xl font-medium text-sm disabled:opacity-50`}
                 style={{ background: isMobile ? "#fff" : "linear-gradient(135deg, #293794 0%, #000021 100%)" }}
             >
