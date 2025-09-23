@@ -35,7 +35,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
 
     // prepare country options
     const options = countryList?.map((item) => ({
-        value: item.en_short_name,
+        value: item.alpha_2_code,
         label: (
             <div className="flex items-center gap-2">
                 <img
@@ -55,7 +55,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
             );
             formik.setFieldValue(
                 "country",
-                filterData ? filterData?.en_short_name : ""
+                filterData ? filterData?.alpha_2_code : ""
             );
         }
         formik.setFieldValue(
@@ -83,8 +83,6 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
             () => chars[Math.floor(Math.random() * chars.length)]
         ).join("");
     };
-
-    console.log({ countryData })
 
     // formik setup
     const formik = useFormik({
@@ -393,7 +391,11 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                 <Select
                     name="country"
                     options={options}
-                    onChange={(opt) => formik.setFieldValue("country", opt?.value)}
+                    onChange={(opt,e) => {
+                        console.log({opt,e})
+                        formik.setFieldValue("country", opt?.value)
+
+                    }}
                     onBlur={() => formik.setFieldTouched("country", true)}
                     value={options.find((opt) => opt.value === formik.values.country)}
                 />
@@ -485,10 +487,10 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
             <button
                 type="submit"
                 disabled={loading}
-                className={`w-full  ${isMobile ? "text-[#000032]" : "text-white"} py-3 rounded-xl font-medium text-sm disabled:opacity-50`}
+                className={`w-full  ${isMobile ? "text-[#000032]" : "text-white"} py-3 rounded-xl font-medium cursor-pointer text-sm disabled:opacity-50`}
                 style={{ background: isMobile ? "#fff" : "linear-gradient(135deg, #293794 0%, #000021 100%)" }}
             >
-                {t("btnText")}
+                {loading?"Submitting..":t("btnText")}
             </button>
         </form>
     );
