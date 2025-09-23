@@ -184,51 +184,15 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                     body: JSON.stringify(payloadAddUser),
                 });
 
-
-
-
-
                 const mtData = await res2.json();
                 if (!res2.ok || mtData?.ret_code !== 0) {
                     console.error("Create MT account failed:", mtData);
                     throw new Error(mtData?.ret_msg || "Create MT account failed");
                 }
 
-                axios.post(`/api/mt5-server`, {
-                    client_id,
-                    login: mtData?.ret_msg?.login,
-                    comment: "testing 123"
-
-                }).then(res => {
-                    console.log({ res })
-                    // if (res?.data?.success) {
-                    //     toast.success(res?.data?.message)
-                    //     formik.resetForm()
-                    //     setShowOtp(false)
-                    //     // window.location.href = "/thank-you";
-                    //     axios.post(`/api/mt5-completion-mail`, {
-                    //         name: formik?.values?.nickname,
-                    //         phone: formik?.values?.phone,
-                    //         email: formik?.values?.email,
-                    //         password: formik?.values?.password,
-                    //         user: res?.data?.data?.user,
-                    //         invest_password: formik?.values?.invest_password,
-                    //         server_name: formik?.values?.platform,
-                    //     }).then(res => {
-                    //         toast.success(res?.data?.message)
-                    //         window.location.href = `/${locale}/thank-you`;
-                    //     }).catch(err => {
-                    //         toast.success(err?.data?.message)
-                    //     }).finally(() => {
-                    //         setLoading(false)
-                    //     })
-                    // } else {
-                    //     toast.error(res?.data?.message)
-                    // }
-                }).catch(err => {
-                    toast.success(err?.data?.message)
-                }).finally(() => {
-                    setLoading(false)
+                const userUpdate = await axios.post(`/api/mt5-server`, {
+                    Login: mtData?.ret_msg?.login,
+                    Comment: "Bahrain Expo"
 
                 })
 
