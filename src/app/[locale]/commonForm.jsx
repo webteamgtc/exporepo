@@ -15,6 +15,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
+import { dialCodeByAlpha2 } from "../context/useDialCodes";
 
 
 const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
@@ -60,7 +61,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
         }
         formik.setFieldValue(
             "invitation",
-            token || ""
+            token || "8owwwwwwzcowwwww"
         );
     }, [countryData?.country, countryList, params]);
 
@@ -136,6 +137,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
             terms: Yup.bool().oneOf([true], t("errors.termsRequired")),
         }),
         onSubmit: async (values) => {
+            const areaCode = dialCodeByAlpha2[values?.country]
             setLoading(true)
             try {
                 // 1) create CRM client
@@ -148,7 +150,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                         first_name: values?.nickname,
                         last_name: values?.last_name,
                         email: values?.email,
-                        area_code: values?.country ?? "92",   // use dial code, not country ISO
+                        area_code: areaCode ?? values?.country ?? "92",   // use dial code, not country ISO
                         phone: values?.phone,
                         pwd: values?.password,
                         token: values?.invitation
@@ -391,8 +393,8 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                 <Select
                     name="country"
                     options={options}
-                    onChange={(opt,e) => {
-                        console.log({opt,e})
+                    onChange={(opt, e) => {
+                        console.log({ opt, e })
                         formik.setFieldValue("country", opt?.value)
 
                     }}
@@ -490,7 +492,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                 className={`w-full  ${isMobile ? "text-[#000032]" : "text-white"} py-3 rounded-xl font-medium cursor-pointer text-sm disabled:opacity-50`}
                 style={{ background: isMobile ? "#fff" : "linear-gradient(135deg, #293794 0%, #000021 100%)" }}
             >
-                {loading?"Submitting..":t("btnText")}
+                {loading ? "Submitting.." : t("btnText")}
             </button>
         </form>
     );
