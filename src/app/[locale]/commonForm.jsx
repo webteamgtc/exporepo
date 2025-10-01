@@ -171,7 +171,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                 const payloadAddUser = {
                     client_id,
                     name: values?.nickname,
-                    comment: "Bahrain Expo",
+                    comment: "Forex Expo Dubai",
                     account_type: 0,           // 0=trading, 2=agent
                     manager_id: 3,             // 1=MT4, 3=MT5
                     // ESCAPE backslashes in JS string:
@@ -193,10 +193,10 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                     throw new Error(mtData?.ret_msg || "Create MT account failed");
                 }
 
-                if (countryData?.country == "BH") {
+                if (countryData?.country == "AE") {
                     const userUpdate = await axios.post(`/api/mt5-server`, {
                         Login: mtData?.ret_msg?.login,
-                        Comment: "Bahrain Expo"
+                        Comment: "Forex Expo Dubai"
                     })
                 }
 

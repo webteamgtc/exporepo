@@ -46,11 +46,11 @@ export default function GTCRegisterWithDesign() {
         <div className="bg-[linear-gradient(135deg,#293794,#00002f)]">
           <div className="mx-auto relative z-10 max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-12 px-4 pt-10 pb-10 lg:pb-20">
             {/* Left */}
-            <div className="relative">
+            <div className="relative text-center md:text-left">
               <h1 className="text-4xl md:text-5xl font-bold leading-tight">
                 <span className="text-white">{t("topText")}</span>
               </h1>
-              <p className="mt-2 text-3xl font-semibold text-white/90">
+              <p className="mt-2 text-3xl font-semibold text-[#B48755]">
                 {t("desc")}
               </p>
               <p className="mt-4 text-lg md:text-xl text-gray-200 max-w-md">
