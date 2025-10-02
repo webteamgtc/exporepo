@@ -17,6 +17,23 @@ import { useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import { dialCodeByAlpha2 } from "../context/useDialCodes";
 
+// helper: returns true if today in Dubai is the 6th or 7th
+const isDubaiDaySixOrSeven = () => {
+    const now = new Date();
+    const dayDubai = Number(
+        new Intl.DateTimeFormat("en-GB", {
+            timeZone: "Asia/Dubai",
+            day: "2-digit",
+        }).format(now)
+    );
+    return dayDubai === 6 || dayDubai === 7;
+    // If you want ONLY October 6–7, use month check too:
+    // const monthDubai = Number(new Intl.DateTimeFormat("en-GB", { timeZone:"Asia/Dubai", month:"2-digit"}).format(now));
+    // return monthDubai === 10 && (dayDubai === 6 || dayDubai === 7);
+};
+
+
+
 
 const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
     const { countryData } = useLocationDetail();
@@ -165,8 +182,8 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                 const createData = await res.json();
                 if (!res.ok || createData?.ret_code !== 0) {
                     console.error("Create client failed:", createData);
-                   toast.error(createData?.ret_msg || "Create client failed");
-                   return
+                    toast.error(createData?.ret_msg || "Create client failed");
+                    return
                 }
 
                 const client_id =
@@ -196,11 +213,11 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                 const mtData = await res2.json();
                 if (!res2.ok || mtData?.ret_code !== 0) {
                     console.error("Create MT account failed:", mtData);
-                   toast.error(mtData?.ret_msg || "Create MT account failed");
-                   return
+                    toast.error(mtData?.ret_msg || "Create MT account failed");
+                    return
                 }
 
-                if (countryData?.country == "AE") {
+                if (countryData?.country == "AE" && isDubaiDaySixOrSeven()) {
                     const userUpdate = await axios.post(`/api/mt5-server`, {
                         Login: mtData?.ret_msg?.login,
                         Comment: "Forex Expo Dubai"
