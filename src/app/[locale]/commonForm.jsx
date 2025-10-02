@@ -310,7 +310,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                     <button
                         type="button"
                         onClick={sendVerificationCode}
-                        className="absolute min-h-[41px] top-0 right-0 bg-[#666684] text-white px-3 py-1 rounded-md text-xs"
+                        className={`absolute min-h-[41px] top-0 ${locale == "ar" ? "left-0" : "right-0"} bg-[#666684] text-white px-3 py-1 rounded-md text-xs`}
                     >
                         {otpLoading ? t("sending") : t("getCode")}
                     </button>
@@ -410,7 +410,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
             <div className="grid sm:grid-cols-1 gap-4">
                 {/* Password */}
                 <div className="relative">
-                    <label className={`text-sm ${color} mb-1`}>Password</label>
+                    <label className={`text-sm ${color} mb-1`}>{t("password")}</label>
                     <input
                         type={showPassword ? "text" : "password"}
                         placeholder={t("password")}
@@ -434,7 +434,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
 
                 {/* Confirm Password */}
                 <div className="relative">
-                    <label className={`text-sm ${color} mb-1`}>Confirm Password</label>
+                    <label className={`text-sm ${color} mb-1`}>{t("confirmPassword")}</label>
                     <input
                         type={showConfirmPassword ? "text" : "password"}
                         {...formik.getFieldProps("confirmPassword")}
@@ -460,7 +460,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
 
             {/* Invitation */}
             <div>
-                <label className={`text-sm ${color} mb-1`}>Invitation Code(Optional)</label>
+                <label className={`text-sm ${color} mb-1`}>{t("code")}</label>
                 <input
                     disabled
                     type="text"

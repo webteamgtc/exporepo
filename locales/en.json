@@ -41,6 +41,7 @@
       "getCode": "Get Code",
       "sending": "Sending...",
       "sendOtp": "Send OTP",
+      "code":"Invitation Code(Optional)",
       "verifyCode": "Verify Code",
       "termsLabel": "Please accept the terms and conditions",
       "termsText": "By submitting your application you confirm that you have read, understood and agreed to all the Terms And Conditions, Bonus Terms and Conditions and Client Agreement .",
