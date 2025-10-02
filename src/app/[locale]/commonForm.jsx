@@ -33,6 +33,45 @@ const isDubaiDaySixOrSeven = () => {
 };
 
 
+// put above your return()
+const selectStyles = {
+    control: (base, state) => ({
+        ...base,
+        backgroundColor: '#fff',
+        color: '#000',
+        borderColor: state.isFocused ? '#666684' : '#d1d5db',
+        boxShadow: 'none',
+        ':hover': { borderColor: '#666684' },
+        minHeight: 42,
+    }),
+    valueContainer: (base) => ({ ...base, color: '#000' }),
+    singleValue: (base) => ({ ...base, color: '#000' }),
+    input: (base) => ({ ...base, color: '#000' }),
+    placeholder: (base) => ({ ...base, color: '#6b7280' }),
+    menu: (base) => ({
+        ...base,
+        backgroundColor: '#fff',
+        color: '#000',
+        zIndex: 9999,
+    }),
+    menuList: (base) => ({ ...base, backgroundColor: '#fff' }),
+    option: (base, state) => ({
+        ...base,
+        backgroundColor: state.isSelected
+            ? '#e5e7eb'
+            : state.isFocused
+                ? '#f3f4f6'
+                : '#fff',
+        color: '#000',
+        ':active': { backgroundColor: '#e5e7eb' },
+    }),
+    indicatorSeparator: (base) => ({ ...base, backgroundColor: '#e5e7eb' }),
+    dropdownIndicator: (base, state) => ({
+        ...base,
+        color: state.isFocused ? '#666684' : '#9ca3af',
+        ':hover': { color: '#666684' },
+    }),
+};
 
 
 const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
@@ -271,8 +310,8 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
     };
 
     // verify OTP
-    const verifyOtpCode = () => {
-        if (formik.values.otp === storedOtp) {
+    const verifyOtpCode = (otp) => {
+        if (otp  === storedOtp) {
             toast.success(t("otpSuccess"));
             setShowOtp(false);
             setIsDisable(false);
@@ -351,10 +390,17 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                     <div className=" flex gap-3 items-center">
                         <OtpInput
                             value={formik.values.otp}
-                            onChange={(otp) => formik.setFieldValue("otp", otp)}
+                            onChange={(otp) => {
+                                formik.setFieldValue("otp", otp)
+                                if (otp?.length == 6) {
+                                    verifyOtpCode(otp)
+                                }
+
+                            }}
                             numInputs={6}
                             containerStyle={{
                                 display: "flex",
+                                justifyContent: "space-between",
                                 gap: "3px"
                             }}
                             isInputNum
@@ -383,13 +429,13 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                                         : "1px solid #666684",
                             }}
                         />
-                        <button
+                        {/* <button
                             type="button"
                             onClick={verifyOtpCode}
                             className=" bg-[#666684] text-white px-3 py-1 rounded-md text-sm"
                         >
                             {t("verifyCode")}
-                        </button>
+                        </button> */}
                     </div>
                 </div>
             )}
@@ -418,6 +464,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                 <Select
                     name="country"
                     options={options}
+                    styles={selectStyles}
                     onChange={(opt, e) => {
                         console.log({ opt, e })
                         formik.setFieldValue("country", opt?.value)
