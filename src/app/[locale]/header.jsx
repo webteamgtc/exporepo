@@ -14,7 +14,6 @@ const Header = () => {
                         className="lg:w-[110px] lg:h-[40px] md:w-[110px] md:h-[40px] w-[130px] h-[47px] cursor-pointer"
                     />
                 </div>
-                <LanguageSelect />
             </header>
         </div>
     )
