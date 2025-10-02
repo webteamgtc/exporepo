@@ -104,7 +104,12 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
             last_name: Yup.string().required(t("errors.lastNameRequired")),
             email: Yup.string()
                 .email(t("errors.emailInvalid"))
-                .required(t("errors.emailRequired")),
+                .required(t("errors.emailRequired"))
+                .test(
+                    "no-plus-sign",
+                    "Email address cannot contain '+'",
+                    (value) => !value || !value.includes("+")
+                ),
             phone: Yup.string()
                 .required(t("errors.phoneRequired"))
                 .test("is-valid-e164", t("errors.phoneInvalid"), (value) => {
@@ -216,7 +221,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                 formik.resetForm();
             } catch (err) {
                 console.error(err);
-                toast.error("Something went wrong");
+                toast.error(err || "Something went wrong");
             } finally {
                 setLoading(false);
             }
