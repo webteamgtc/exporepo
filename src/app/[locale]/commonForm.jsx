@@ -165,7 +165,8 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                 const createData = await res.json();
                 if (!res.ok || createData?.ret_code !== 0) {
                     console.error("Create client failed:", createData);
-                    throw new Error(createData?.ret_msg || "Create client failed");
+                   toast.error(createData?.ret_msg || "Create client failed");
+                   return
                 }
 
                 const client_id =
@@ -195,7 +196,8 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                 const mtData = await res2.json();
                 if (!res2.ok || mtData?.ret_code !== 0) {
                     console.error("Create MT account failed:", mtData);
-                    throw new Error(mtData?.ret_msg || "Create MT account failed");
+                   toast.error(mtData?.ret_msg || "Create MT account failed");
+                   return
                 }
 
                 if (countryData?.country == "AE") {

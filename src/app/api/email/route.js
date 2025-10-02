@@ -19,7 +19,7 @@ export async function POST(req) {
       ...mailOption,
       ...generateEmailContent(reqBody),
       subject:
-        data?.locale == "ar"
+        reqBody?.locale == "ar"
           ? "احصل على 5,000 USC للتداول. بدون إيداع! | GTC"
           : `Get 5,000 USC to Trade. No Deposit Needed! | GTC`,
     });
