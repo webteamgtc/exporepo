@@ -195,7 +195,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                 .min(6, ("Min Password"))
                 .required(t("errors.passwordRequired")),
             confirmPassword: Yup.string()
-                .oneOf([Yup.ref("password")], t("errors.passwordMatch"))
+                .oneOf([Yup.ref("password")], t("errors.passwordMatch")) 
                 .required(t("errors.confirmPasswordRequired")),
             terms: Yup.bool().oneOf([true], t("errors.termsRequired")),
         }),
@@ -235,7 +235,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                 const payloadAddUser = {
                     client_id,
                     name: values?.nickname,
-                    comment: "Forex Expo Dubai",
+                    comment: "Forex Expo Dubai 2025",
                     account_type: 0,           // 0=trading, 2=agent
                     manager_id: 3,             // 1=MT4, 3=MT5
                     // ESCAPE backslashes in JS string:
@@ -261,7 +261,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                 if (countryData?.country == "AE" && isDubaiDaySixOrSeven() && countryData?.country == values?.country) {
                     const userUpdate = await axios.post(`/api/mt5-server`, {
                         Login: mtData?.ret_msg?.login,
-                        Comment: "Forex Expo Dubai"
+                        Comment: "Forex Expo Dubai 2025"
                     })
                 }
 
@@ -552,7 +552,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                     className="h-5 w-5"
                 />
                 <label htmlFor="terms" className="text-xs">
-                    {t("termsText")}
+                    By submitting your application you confirm that you have read, understood and agreed to all the <a className="text-secondary" data-v-30779926="" href="https://www.gtcfx.com/terms-and-conditions" target="_blank" class="link">Terms And Conditions</a>, <a  className="text-secondary" data-v-30779926="" href="https://gtcfx-bucket.s3.ap-southeast-1.amazonaws.com/pdf-files/5000USC-T%26C.pdf" target="_blank" class="link">Bonus Terms and Conditions</a> and <a  className="text-secondary" data-v-30779926="" href="https://www.gtcfx.com/legal-policies-client-agreements" target="_blank" class="link">Client Agreement .</a>
                 </label>
             </div>
             {formik.touched.terms && formik.errors.terms && (
@@ -560,7 +560,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
             )}
 
             {/* Submit */}
-            <button
+            <button 
                 type="submit"
                 disabled={loading}
                 className={`w-full  ${isMobile ? "text-[#000032]" : "text-white"} py-3 rounded-xl font-medium cursor-pointer text-sm disabled:opacity-50`}
