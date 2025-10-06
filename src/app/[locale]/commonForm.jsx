@@ -141,6 +141,8 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
         ).join("");
     };
 
+    console.log({ countryData })
+
     // formik setup
     const formik = useFormik({
         initialValues: {
@@ -256,7 +258,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                     return
                 }
 
-                if (countryData?.country == "AE" && isDubaiDaySixOrSeven()) {
+                if (countryData?.country == "AE" && isDubaiDaySixOrSeven() && countryData?.country == values?.country) {
                     const userUpdate = await axios.post(`/api/mt5-server`, {
                         Login: mtData?.ret_msg?.login,
                         Comment: "Forex Expo Dubai"
@@ -311,7 +313,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
 
     // verify OTP
     const verifyOtpCode = (otp) => {
-        if (otp  === storedOtp) {
+        if (otp === storedOtp) {
             toast.success(t("otpSuccess"));
             setShowOtp(false);
             setIsDisable(false);
