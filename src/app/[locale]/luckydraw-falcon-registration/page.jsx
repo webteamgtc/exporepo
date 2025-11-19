@@ -10,9 +10,7 @@ import Footer from "./Footer";
 export default function LuckyDrawFalconRegistration() {
   return (
     <div className="min-h-screen bg-[#0F143A] text-white">
-      <Header />
       <HeroSection />
-      <TradingAccountSection />
       <StepsToWinSection />
       <PrizeProgression />
       <CountdownHero />
