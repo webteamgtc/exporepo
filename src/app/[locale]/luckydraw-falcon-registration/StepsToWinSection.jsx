@@ -39,7 +39,7 @@ export default function StepsToWinSection() {
         </h3>
 
         {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-10 md:mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-10 md:mb-12"> 
           {STEPS.map((step) => (
             <div
               key={step.id}
