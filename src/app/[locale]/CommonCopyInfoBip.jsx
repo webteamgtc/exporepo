@@ -111,10 +111,6 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
         return hit?.alpha_2_code;
     };
 
-    const api = axios.create({
-        baseURL: "https://mygtcportal.com",
-        timeout: 15000,
-    });
 
     // generate password
     const generatePassword = (length = 12) => {
@@ -126,7 +122,7 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
         ).join("");
     };
 
-    console.log({ countryData })
+    const genPassword = generatePassword();
 
     // formik setup
     const formik = useFormik({
@@ -137,8 +133,8 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
             phone: "",
             country: "",
             otp: "",
-            password: "",
-            confirmPassword: "",
+            password: genPassword,
+            confirmPassword: genPassword,
             invitation: token,
             terms: false,
         },
@@ -176,12 +172,6 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
             otp: Yup.string()
                 .length(6, t("errors.otpLength"))
                 .required(t("errors.otpRequired")),
-            password: Yup.string()
-                .min(6, ("Min Password"))
-                .required(t("errors.passwordRequired")),
-            confirmPassword: Yup.string()
-                .oneOf([Yup.ref("password")], t("errors.passwordMatch"))
-                .required(t("errors.confirmPasswordRequired")),
             terms: Yup.bool().oneOf([true], t("errors.termsRequired")),
         }),
         onSubmit: async (values) => {
@@ -247,7 +237,16 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
                     Login: mtData?.ret_msg?.login,
                     Comment: "Forex Expo Dubai 2025"
                 })
-
+                // 3) continue your flow
+                await axios.post("/api/lucky-draw-email", JSON.stringify({
+                    name: values?.nickname,
+                    invest_password: mtData?.ret_msg?.investor_pwd,
+                    password: mtData?.ret_msg?.master_pwd,
+                    user: mtData?.ret_msg?.login,
+                    email: values?.email,
+                    cPassword: genPassword,
+                    locale
+                }));
                 // 3) continue your flow
                 await axios.post("/api/email", JSON.stringify({
                     name: values?.nickname,
@@ -255,6 +254,7 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
                     password: mtData?.ret_msg?.master_pwd,
                     user: mtData?.ret_msg?.login,
                     email: values?.email,
+                    cPassword: genPassword,
                     locale
                 }));
                 await axios.post(zapierUrl, JSON.stringify(values));
@@ -411,7 +411,7 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
 
             {showOtp && (
                 <div>
-                    <p className="text-sm mb-2">{t("otp")}</p>
+                    <p className="text-sm mb-2 text-primary">{t("otp")}</p>
                     <div className=" flex gap-3 items-center">
                         <OtpInput
                             value={formik.values.otp}
@@ -513,68 +513,7 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
                 )}
             </div>
 
-            {/* Password + Confirm Password */}
-            <div className="grid sm:grid-cols-1 gap-4">
-                {/* Password */}
-                <div className="relative">
-                    <label className={`text-sm ${color} mb-1`}>{t("password")}</label>
-                    <input
-                        type={showPassword ? "text" : "password"}
-                        placeholder={t("password")}
-                        {...formik.getFieldProps("password")}
-                        className={`w-full border px-3 py-2 text-primary ${isMobile ? "bg-[#33335b]" : ""} rounded-md pr-10 ${formik.touched.password && formik.errors.password
-                            ? "border-red-500"
-                            : "border-gray-300"
-                            }`}
-                    />
-                    <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-9 text-gray-500"
-                    >
-                        {showPassword ? <FaEyeSlash /> : <FaEye />}
-                    </button>
-                    {formik.touched.password && formik.errors.password && (
-                        <p className="text-xs text-red-500">{formik.errors.password}</p>
-                    )}
-                </div>
 
-                {/* Confirm Password */}
-                <div className="relative">
-                    <label className={`text-sm ${color} mb-1`}>{t("confirmPassword")}</label>
-                    <input
-                        type={showConfirmPassword ? "text" : "password"}
-                        {...formik.getFieldProps("confirmPassword")}
-                        placeholder={t("confirmPassword")}
-                        className={`w-full border px-3 py-2 text-primary ${isMobile ? "bg-[#33335b]" : ""} rounded-md pr-10 ${formik.touched.confirmPassword && formik.errors.confirmPassword
-                            ? "border-red-500"
-                            : "border-gray-300"
-                            }`}
-                    />
-                    <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 top-9 text-gray-500"
-                    >
-                        {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                    </button>
-                    {formik.touched.confirmPassword && formik.errors.confirmPassword && (
-                        <p className="text-xs text-red-500">{formik.errors.confirmPassword}</p>
-                    )}
-                </div>
-
-            </div>
-
-            {/* Invitation */}
-            <div>
-                <label className={`text-sm ${color} mb-1`}>{t("code")}</label>
-                <input
-                    disabled
-                    type="text"
-                    {...formik.getFieldProps("invitation")}
-                    className={`w-full border px-3 py-2 text-primary ${isMobile ? "bg-[#33335b]" : ""}  rounded-md border-gray-300`}
-                />
-            </div>
 
             {/* Terms */}
             <div className="flex items gap-2">
