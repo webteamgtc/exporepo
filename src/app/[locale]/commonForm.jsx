@@ -77,6 +77,7 @@ const selectStyles = {
 const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
     const { countryData } = useLocationDetail();
     const [otpLoading, setOtpLoading] = useState(false);
+    const [phoneOtpLoading, setPhoneOtpLoading] = useState(false);
     const params = useSearchParams()
     const token = params.get("token")
     const [showOtp, setShowOtp] = useState(false);
@@ -291,6 +292,10 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
 
     // send OTP
     const sendVerificationCode = () => {
+        if (!formik.values.email) {
+            toast.error(t("errors.emailRequired"));
+            return;
+        }
         setOtpLoading(true);
         axios
             .post(`/api/otp-smtp`, {
@@ -303,12 +308,49 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                 if (res?.data?.message) {
                     setShowOtp(true);
                     setStoredOtp(res?.data?.message?.slice(4, -3));
+                    formik.setFieldValue("otp", "");
+                    setIsDisable(true);
                     toast.success(t("otpSent"));
                 } else {
                     toast.error(res?.data?.message);
                 }
             })
             .finally(() => setOtpLoading(false));
+    };
+
+    const sendPhoneVerificationCode = () => {
+        if (!formik.values.phone) {
+            toast.error(t("errors.phoneRequired"));
+            return;
+        }
+        if (!isValidPhoneNumber(formik.values.phone)) {
+            toast.error(t("errors.phoneInvalid"));
+            return;
+        }
+        setPhoneOtpLoading(true);
+        axios
+            .post(`/api/otp-smtp`, {
+                phone: formik.values.phone,
+                first_name: formik.values.nickname,
+                locale,
+                channel: "whatsapp",
+            })
+            .then((res) => {
+                if (res?.data?.message) {
+                    setShowOtp(true);
+                    setStoredOtp(res?.data?.message?.slice(4, -3));
+                    formik.setFieldValue("otp", "");
+                    setIsDisable(true);
+                    toast.success(t("otpSent"));
+                } else {
+                    toast.error(res?.data?.message || t("otpFail"));
+                }
+            })
+            .catch((error) => {
+                console.error(error);
+                toast.error(t("otpFail"));
+            })
+            .finally(() => setPhoneOtpLoading(false));
     };
 
     // verify OTP
@@ -445,16 +487,26 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
             {/* Phone */}
             <div>
                 <label className={`text-sm ${color} mb-1`}>{t("phone")}</label>
-                <PhoneInput
-                    international
-                    defaultCountry={countryData?.country_code || countryData?.country || "AE"}
-                    value={formik.values.phone}
-                    onChange={(phone) => formik.setFieldValue("phone", phone)}
-                    className={`w-full border px-3 py-2 ${isMobile ? "bg-[#33335b]" : ""} rounded-md ${formik.touched.phone && formik.errors.phone
-                        ? "border-red-500"
-                        : "border-gray-300"
-                        }`}
-                />
+                <div className="flex flex-col sm:flex-row gap-2">
+                    <PhoneInput
+                        international
+                        defaultCountry={countryData?.country_code || countryData?.country || "AE"}
+                        value={formik.values.phone}
+                        onChange={(phone) => formik.setFieldValue("phone", phone)}
+                        className={`flex-1 border px-3 py-2 ${isMobile ? "bg-[#33335b]" : ""} rounded-md ${formik.touched.phone && formik.errors.phone
+                            ? "border-red-500"
+                            : "border-gray-300"
+                            }`}
+                    />
+                    <button
+                        type="button"
+                        onClick={sendPhoneVerificationCode}
+                        disabled={phoneOtpLoading}
+                        className="min-h-[41px] bg-[#666684] text-white px-4 py-2 rounded-md text-xs sm:text-sm disabled:opacity-70"
+                    >
+                        {phoneOtpLoading ? t("sending") : t("getCode")}
+                    </button>
+                </div>
                 {formik.touched.phone && formik.errors.phone && (
                     <p className="text-xs text-red-500">{formik.errors.phone}</p>
                 )}
@@ -551,7 +603,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                     {...formik.getFieldProps("terms")}
                     className="h-5 w-5"
                 />
-                <label htmlFor="terms" className="text-xs text-primary">
+                <label htmlFor="terms" className="text-xs">
                     By submitting your application you confirm that you have read, understood and agreed to all the <a className="text-secondary" data-v-30779926="" href="https://www.gtcfx.com/terms-and-conditions" target="_blank" class="link">Terms And Conditions</a>, <a  className="text-secondary" data-v-30779926="" href="https://gtcfx-bucket.s3.ap-southeast-1.amazonaws.com/pdf-files/5000USC-T%26C.pdf" target="_blank" class="link">Bonus Terms and Conditions</a> and <a  className="text-secondary" data-v-30779926="" href="https://www.gtcfx.com/legal-policies-client-agreements" target="_blank" class="link">Client Agreement .</a>
                 </label>
             </div>

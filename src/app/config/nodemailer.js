@@ -24,3 +24,20 @@ export const mailOptionsJobs = {
 }
 
 
+// config/mailgun.js
+import Mailgun from "mailgun.js";
+import formData from "form-data";
+
+const mg = new Mailgun(formData);
+
+export const mailgunClient = mg.client({
+  username: "api",
+  key: "fefaa6885175faea6d180940d69e415a-02300200-60e6fa68",
+  url: "https://api.mailgun.net" || "https://api.mailgun.net",
+});
+
+export const MAILGUN_DOMAIN = "mx5.gtcmail.com" || "mx5.gtcmail.com";
+
+export const MAILGUN_FROM =
+  "GTCFX <portal@mx5.gtcmail.com>" || `GTCFX <postmaster@${MAILGUN_DOMAIN}>`;    
+

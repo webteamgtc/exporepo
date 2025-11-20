@@ -1,4 +1,5 @@
 "use client";
+import CommonMainFormCopy from "../CommonCopyInfoBip";
 import CommonMainForm from "../commonForm";
 import Image from "next/image";
 
@@ -68,7 +69,7 @@ export default function HeroSection() {
               </p>
               
               {/* Form */}
-              <CommonMainForm
+              <CommonMainFormCopy
                 zapierUrl="https://hooks.zapier.com/hooks/catch/16420445/umhcnx7/"
                 successPath="/success"
               />
