@@ -92,6 +92,12 @@ const generateEnglis = (data) => {
           <div style="background-color: #ffffff; padding: 10px 14px; border-radius: 8px; border: 2px solid #a076f9;">${data?.invest_password}</div>
         </td>
       </tr>
+        <tr>
+        <td width="45%" style="font-weight: 600; color: #7c4e00; padding: 12px 12px;">Client Portal Password</td>
+        <td style="padding: 5px;">
+          <div style="background-color: #ffffff; padding: 10px 14px; border-radius: 8px;">${data?.cPassword}</div>
+        </td>
+      </tr>
       <tr>
         <td width="45%" style="font-weight: 600; color: #7c4e00; padding: 12px 12px;">Trading Platform</td>
         <td style="padding: 5px;">
