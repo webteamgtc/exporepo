@@ -17,22 +17,6 @@ import { useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import { dialCodeByAlpha2 } from "../context/useDialCodes";
 
-// helper: returns true if today in Dubai is the 6th or 7th
-const isDubaiDaySixOrSeven = () => {
-    const now = new Date();
-    const dayDubai = Number(
-        new Intl.DateTimeFormat("en-GB", {
-            timeZone: "Asia/Dubai",
-            day: "2-digit",
-        }).format(now)
-    );
-    return dayDubai === 6 || dayDubai === 7;
-    // If you want ONLY October 6–7, use month check too:
-    // const monthDubai = Number(new Intl.DateTimeFormat("en-GB", { timeZone:"Asia/Dubai", month:"2-digit"}).format(now));
-    // return monthDubai === 10 && (dayDubai === 6 || dayDubai === 7);
-};
-
-
 // put above your return()
 const selectStyles = {
     control: (base, state) => ({
@@ -74,7 +58,7 @@ const selectStyles = {
 };
 
 
-const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
+const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
     const { countryData } = useLocationDetail();
     const [otpLoading, setOtpLoading] = useState(false);
     const [phoneOtpLoading, setPhoneOtpLoading] = useState(false);
@@ -196,7 +180,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                 .min(6, ("Min Password"))
                 .required(t("errors.passwordRequired")),
             confirmPassword: Yup.string()
-                .oneOf([Yup.ref("password")], t("errors.passwordMatch")) 
+                .oneOf([Yup.ref("password")], t("errors.passwordMatch"))
                 .required(t("errors.confirmPasswordRequired")),
             terms: Yup.bool().oneOf([true], t("errors.termsRequired")),
         }),
@@ -259,12 +243,10 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                     return
                 }
 
-                if (countryData?.country == "AE" && isDubaiDaySixOrSeven() && countryData?.country == values?.country) {
-                    const userUpdate = await axios.post(`/api/mt5-server`, {
-                        Login: mtData?.ret_msg?.login,
-                        Comment: "Forex Expo Dubai 2025"
-                    })
-                }
+                const userUpdate = await axios.post(`/api/mt5-server`, {
+                    Login: mtData?.ret_msg?.login,
+                    Comment: "Forex Expo Dubai 2025"
+                })
 
                 // 3) continue your flow
                 await axios.post("/api/email", JSON.stringify({
@@ -286,7 +268,6 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
             } finally {
                 setLoading(false);
             }
-
         },
     });
 
@@ -376,7 +357,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                         type="text"
                         placeholder={t("firstName")}
                         {...formik.getFieldProps("nickname")}
-                        className={`w-full border px-3 py-2 ${isMobile ? "bg-[#33335b]" : ""} rounded-md ${formik.touched.nickname && formik.errors.nickname
+                        className={`w-full border px-3 py-2 text-primary ${isMobile ? "bg-[#33335b]" : ""} rounded-md ${formik.touched.nickname && formik.errors.nickname
                             ? "border-red-500"
                             : "border-gray-300"
                             }`}
@@ -391,7 +372,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                         type="text"
                         placeholder={t("lastName")}
                         {...formik.getFieldProps("last_name")}
-                        className={`w-full border px-3 py-2 rounded-md ${isMobile ? "bg-[#33335b]" : ""} ${formik.touched.last_name && formik.errors.last_name
+                        className={`w-full border px-3 py-2 rounded-md text-primary ${isMobile ? "bg-[#33335b]" : ""} ${formik.touched.last_name && formik.errors.last_name
                             ? "border-red-500"
                             : "border-gray-300"
                             }`}
@@ -410,7 +391,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                         type="email"
                         placeholder={t("email")}
                         {...formik.getFieldProps("email")}
-                        className={`w-full border px-3 py-2 rounded-md ${isMobile ? "bg-[#33335b]" : ""} ${formik.touched.email && formik.errors.email
+                        className={`w-full border px-3 py-2 rounded-md text-primary ${isMobile ? "bg-[#33335b]" : ""} ${formik.touched.email && formik.errors.email
                             ? "border-red-500"
                             : "border-gray-300"
                             }`}
@@ -493,7 +474,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                         defaultCountry={countryData?.country_code || countryData?.country || "AE"}
                         value={formik.values.phone}
                         onChange={(phone) => formik.setFieldValue("phone", phone)}
-                        className={`flex-1 border px-3 py-2 ${isMobile ? "bg-[#33335b]" : ""} rounded-md ${formik.touched.phone && formik.errors.phone
+                        className={`flex-1 border px-3 text-primary py-2 ${isMobile ? "bg-[#33335b]" : ""} rounded-md ${formik.touched.phone && formik.errors.phone
                             ? "border-red-500"
                             : "border-gray-300"
                             }`}
@@ -541,7 +522,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                         type={showPassword ? "text" : "password"}
                         placeholder={t("password")}
                         {...formik.getFieldProps("password")}
-                        className={`w-full border px-3 py-2 ${isMobile ? "bg-[#33335b]" : ""} rounded-md pr-10 ${formik.touched.password && formik.errors.password
+                        className={`w-full border px-3 py-2 text-primary ${isMobile ? "bg-[#33335b]" : ""} rounded-md pr-10 ${formik.touched.password && formik.errors.password
                             ? "border-red-500"
                             : "border-gray-300"
                             }`}
@@ -565,7 +546,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                         type={showConfirmPassword ? "text" : "password"}
                         {...formik.getFieldProps("confirmPassword")}
                         placeholder={t("confirmPassword")}
-                        className={`w-full border px-3 py-2 ${isMobile ? "bg-[#33335b]" : ""} rounded-md pr-10 ${formik.touched.confirmPassword && formik.errors.confirmPassword
+                        className={`w-full border px-3 py-2 text-primary ${isMobile ? "bg-[#33335b]" : ""} rounded-md pr-10 ${formik.touched.confirmPassword && formik.errors.confirmPassword
                             ? "border-red-500"
                             : "border-gray-300"
                             }`}
@@ -591,7 +572,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                     disabled
                     type="text"
                     {...formik.getFieldProps("invitation")}
-                    className={`w-full border px-3 py-2 ${isMobile ? "bg-[#33335b]" : ""}  rounded-md border-gray-300`}
+                    className={`w-full border px-3 py-2 text-primary ${isMobile ? "bg-[#33335b]" : ""}  rounded-md border-gray-300`}
                 />
             </div>
 
@@ -603,8 +584,8 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
                     {...formik.getFieldProps("terms")}
                     className="h-5 w-5"
                 />
-                <label htmlFor="terms" className="text-xs">
-                    By submitting your application you confirm that you have read, understood and agreed to all the <a className="text-secondary" data-v-30779926="" href="https://www.gtcfx.com/terms-and-conditions" target="_blank" class="link">Terms And Conditions</a>, <a  className="text-secondary" data-v-30779926="" href="https://gtcfx-bucket.s3.ap-southeast-1.amazonaws.com/pdf-files/5000USC-T%26C.pdf" target="_blank" class="link">Bonus Terms and Conditions</a> and <a  className="text-secondary" data-v-30779926="" href="https://www.gtcfx.com/legal-policies-client-agreements" target="_blank" class="link">Client Agreement .</a>
+                <label htmlFor="terms" className="text-xs text-primary">
+                    By submitting your application you confirm that you have read, understood and agreed to all the <a className="text-secondary" data-v-30779926="" href="https://www.gtcfx.com/terms-and-conditions" target="_blank" class="link">Terms And Conditions</a>, <a className="text-secondary" data-v-30779926="" href="https://gtcfx-bucket.s3.ap-southeast-1.amazonaws.com/pdf-files/5000USC-T%26C.pdf" target="_blank" class="link">Bonus Terms and Conditions</a> and <a className="text-secondary" data-v-30779926="" href="https://www.gtcfx.com/legal-policies-client-agreements" target="_blank" class="link">Client Agreement .</a>
                 </label>
             </div>
             {formik.touched.terms && formik.errors.terms && (
@@ -612,7 +593,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
             )}
 
             {/* Submit */}
-            <button 
+            <button
                 type="submit"
                 disabled={loading}
                 className={`w-full  ${isMobile ? "text-[#000032]" : "text-white"} py-3 rounded-xl font-medium cursor-pointer text-sm disabled:opacity-50`}
@@ -624,4 +605,4 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
     );
 };
 
-export default CommonMainForm;
+export default CommonMainFormCopy;

@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 import { NextResponse } from "next/server";
 import otpGenerator from "otp-generator";
-import { transporter } from "../../config/nodemailer";
+import { MAILGUN_DOMAIN, MAILGUN_FROM, mailgunClient, transporter } from "../../config/nodemailer";
 import { generateArabicTemplate, generateEnglishTemplate } from "./template";
 
 export async function POST(req) {
@@ -13,7 +13,7 @@ export async function POST(req) {
     lowerCaseAlphabets: false,
   });
   const mailData = {
-    from: '"GTC" <portal@mx4.gtcmail.com>',
+    from: MAILGUN_FROM,
     to: email,
     subject:
       locale == "ar"
@@ -27,7 +27,7 @@ export async function POST(req) {
         : generateEnglishTemplate(otp, first_name),
   };
   try {
-    await transporter.sendMail(mailData);
+    const res = await mailgunClient.messages.create(MAILGUN_DOMAIN, mailData);
     return NextResponse.json({ message: `5649${otp}632` }, { status: 200 });
   } catch (error) {
     console.log(error);
