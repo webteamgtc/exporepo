@@ -417,7 +417,7 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
 
             {showOtp && (
                 <div>
-                    <p className="text-sm mb-2 text-primary">{t("otp")}</p>
+                    <p className="text-sm mb-2 text-primary">OTP has been sent to given Number</p>
                     <div className=" flex gap-3 items-center">
                         <OtpInput
                             value={formik.values.otp}
