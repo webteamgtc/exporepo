@@ -271,33 +271,6 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
         },
     });
 
-    // send OTP
-    const sendVerificationCode = () => {
-        if (!formik.values.email) {
-            toast.error(t("errors.emailRequired"));
-            return;
-        }
-        setOtpLoading(true);
-        axios
-            .post(`/api/otp-smtp`, {
-                email: formik.values.email,
-                first_name: formik.values.nickname,
-                type: "0",
-                locale,
-            })
-            .then((res) => {
-                if (res?.data?.message) {
-                    setShowOtp(true);
-                    setStoredOtp(res?.data?.message?.slice(4, -3));
-                    formik.setFieldValue("otp", "");
-                    setIsDisable(true);
-                    toast.success(t("otpSent"));
-                } else {
-                    toast.error(res?.data?.message);
-                }
-            })
-            .finally(() => setOtpLoading(false));
-    };
 
     const sendPhoneVerificationCode = () => {
         if (!formik.values.phone) {
@@ -317,9 +290,9 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
                 channel: "whatsapp",
             })
             .then((res) => {
-                if (res?.data?.message) {
+                if (res?.data?.success || res?.data?.message) {
                     setShowOtp(true);
-                    setStoredOtp(res?.data?.message?.slice(4, -3));
+                    setStoredOtp(res?.data?.otpMasked?.slice(4, -3) || res?.data?.message?.slice(4, -3));
                     formik.setFieldValue("otp", "");
                     setIsDisable(true);
                     toast.success(t("otpSent"));
@@ -329,10 +302,13 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
             })
             .catch((error) => {
                 console.error(error);
-                toast.error(t("otpFail"));
+                toast.error(error?.response?.data?.message || error?.message || t("otpFail"));
             })
             .finally(() => setPhoneOtpLoading(false));
     };
+
+    // Check if phone number is valid and complete
+    const isPhoneValid = formik.values.phone && isValidPhoneNumber(formik.values.phone);
 
     // verify OTP
     const verifyOtpCode = (otp) => {
@@ -396,16 +372,46 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
                             : "border-gray-300"
                             }`}
                     />
-                    <button
+                    {/* <button
                         type="button"
                         onClick={sendVerificationCode}
                         className={`absolute min-h-[41px] top-0 ${locale == "ar" ? "left-0" : "right-0"} bg-[#666684] text-white px-3 py-1 rounded-md text-xs`}
                     >
                         {otpLoading ? t("sending") : t("getCode")}
-                    </button>
+                    </button> */}
                 </div>
                 {formik.touched.email && formik.errors.email && (
                     <p className="text-xs text-red-500">{formik.errors.email}</p>
+                )}
+            </div>
+
+      
+
+            {/* Phone */}
+            <div>
+                <label className={`text-sm ${color} mb-1`}>Enter WhatsApp Number</label>
+                <div className="flex flex-col sm:flex-row gap-2">
+                    <PhoneInput
+                        international
+                        defaultCountry={countryData?.country_code || countryData?.country || "AE"}
+                        value={formik.values.phone}
+                        onChange={(phone) => formik.setFieldValue("phone", phone)}
+                        className={`flex-1 border px-3 text-primary py-2 ${isMobile ? "bg-[#33335b]" : ""} rounded-md ${formik.touched.phone && formik.errors.phone
+                            ? "border-red-500"
+                            : "border-gray-300"
+                            }`}
+                    />
+                    <button
+                        type="button"
+                        onClick={sendPhoneVerificationCode}
+                        disabled={phoneOtpLoading || !isPhoneValid}
+                        className="min-h-[41px] bg-[#666684] text-white px-4 py-2 rounded-md text-xs sm:text-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                        {phoneOtpLoading ? t("sending") : t("getCode")}
+                    </button>
+                </div>
+                {formik.touched.phone && formik.errors.phone && (
+                    <p className="text-xs text-red-500">{formik.errors.phone}</p>
                 )}
             </div>
 
@@ -464,34 +470,6 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
                     </div>
                 </div>
             )}
-
-            {/* Phone */}
-            <div>
-                <label className={`text-sm ${color} mb-1`}>{t("phone")}</label>
-                <div className="flex flex-col sm:flex-row gap-2">
-                    <PhoneInput
-                        international
-                        defaultCountry={countryData?.country_code || countryData?.country || "AE"}
-                        value={formik.values.phone}
-                        onChange={(phone) => formik.setFieldValue("phone", phone)}
-                        className={`flex-1 border px-3 text-primary py-2 ${isMobile ? "bg-[#33335b]" : ""} rounded-md ${formik.touched.phone && formik.errors.phone
-                            ? "border-red-500"
-                            : "border-gray-300"
-                            }`}
-                    />
-                    {/* <button
-                        type="button"
-                        onClick={sendPhoneVerificationCode}
-                        disabled={phoneOtpLoading}
-                        className="min-h-[41px] bg-[#666684] text-white px-4 py-2 rounded-md text-xs sm:text-sm disabled:opacity-70"
-                    >
-                        {phoneOtpLoading ? t("sending") : t("getCode")}
-                    </button> */}
-                </div>
-                {formik.touched.phone && formik.errors.phone && (
-                    <p className="text-xs text-red-500">{formik.errors.phone}</p>
-                )}
-            </div>
 
             {/* Country */}
             <div>
