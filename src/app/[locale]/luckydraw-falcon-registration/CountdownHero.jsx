@@ -61,7 +61,7 @@ export default function CountdownHero() {
             {/* Countdown Timer */}
             <div className="flex justify-center gap-4 md:gap-6 mb-8 flex-wrap">
               {/* Days */}
-              <div className="bg-white rounded-lg px-6 py-4 md:px-8 md:py-6 min-w-[100px] md:min-w-[120px]">
+              <div className="bg-white rounded-lg px-6 py-4 md:px-8 md:py-6 w-[100px] md:w-[120px] flex flex-col items-center">
                 <div className="text-3xl md:text-4xl font-bold text-[#0F143A] mb-2">
                   {String(countdown.days).padStart(2, "0")}
                 </div>
@@ -71,7 +71,7 @@ export default function CountdownHero() {
               </div>
 
               {/* Hours */}
-              <div className="bg-white rounded-lg px-6 py-4 md:px-8 md:py-6 min-w-[100px] md:min-w-[120px]">
+              <div className="bg-white rounded-lg px-6 py-4 md:px-8 md:py-6 w-[100px] md:w-[120px] flex flex-col items-center">
                 <div className="text-3xl md:text-4xl font-bold text-[#0F143A] mb-2">
                   {String(countdown.hours).padStart(2, "0")}
                 </div>
@@ -81,7 +81,7 @@ export default function CountdownHero() {
               </div>
 
               {/* Minutes */}
-              <div className="bg-white rounded-lg px-6 py-4 md:px-8 md:py-6 min-w-[100px] md:min-w-[120px]">
+              <div className="bg-white rounded-lg px-6 py-4 md:px-8 md:py-6 w-[100px] md:w-[120px] flex flex-col items-center">
                 <div className="text-3xl md:text-4xl font-bold text-[#0F143A] mb-2">
                   {String(countdown.minutes).padStart(2, "0")}
                 </div>
@@ -91,7 +91,7 @@ export default function CountdownHero() {
               </div>
 
               {/* Seconds */}
-              <div className="bg-white rounded-lg px-6 py-4 md:px-8 md:py-6 min-w-[100px] md:min-w-[120px]">
+              <div className="bg-white rounded-lg px-6 py-4 md:px-8 md:py-6 w-[100px] md:w-[120px] flex flex-col items-center">
                 <div className="text-3xl md:text-4xl font-bold text-[#0F143A] mb-2">
                   {String(countdown.seconds).padStart(2, "0")}
                 </div>

@@ -109,13 +109,14 @@ export default function StepsToWinSection() {
               </div>
 
               {/* Illustration – right & popping out of bottom */}
-              <div className="mt-auto relative h-[130px] md:h-[170px]">
+              <div className="mt-auto relative h-[120px] sm:h-[140px] md:h-[170px] w-full overflow-hidden">
                 <Image
                   src={step.image}
                   alt={step.imageAlt}
                   width={240}
                   height={130}
-                  className={`absolute ${step.imagePos} object-contain pointer-events-none select-none right-0`}
+                  className="absolute bottom-0 right-0 w-auto h-full max-w-[180px] sm:max-w-[200px] md:max-w-none md:w-[240px] object-contain object-right pointer-events-none select-none"
+                  sizes="(max-width: 640px) 180px, (max-width: 768px) 200px, 240px"
                 />
               </div>
             </div>
