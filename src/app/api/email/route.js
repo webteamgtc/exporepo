@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { transporter, mailOptions } from "../../config/nodemailer";
+import { mailgunClient, MAILGUN_DOMAIN, MAILGUN_FROM } from "../../config/nodemailer";
 import { generateArabic, generateEnglis } from "./template";
 
 const generateEmailContent = (data) => {
@@ -15,14 +15,16 @@ export async function POST(req) {
     to: reqBody?.email,
   };
   try {
-    await transporter.sendMail({
-      ...mailOption,
-      ...generateEmailContent(reqBody),
+    const res = await mailgunClient.messages.create(MAILGUN_DOMAIN, {
+      from: MAILGUN_FROM,
+      to: reqBody?.email,
       subject:
         reqBody?.locale == "ar"
           ? "احصل على 5,000 USC للتداول. بدون إيداع! | GTC"
           : `Get 5,000 USC to Trade. No Deposit Needed! | GTC`,
+      ...generateEmailContent(reqBody),
     });
+
     return NextResponse.json(
       { message: "Success", email: reqBody?.email },
       { status: 200 }
