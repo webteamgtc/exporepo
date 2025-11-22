@@ -310,7 +310,7 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
         }
         setPhoneOtpLoading(true);
         axios
-            .post(`/api/otp-smtp`, {
+            .post(`/api/send-phone-otp`, {
                 phone: formik.values.phone,
                 first_name: formik.values.nickname,
                 locale,
@@ -479,14 +479,14 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
                             : "border-gray-300"
                             }`}
                     />
-                    <button
+                    {/* <button
                         type="button"
                         onClick={sendPhoneVerificationCode}
                         disabled={phoneOtpLoading}
                         className="min-h-[41px] bg-[#666684] text-white px-4 py-2 rounded-md text-xs sm:text-sm disabled:opacity-70"
                     >
                         {phoneOtpLoading ? t("sending") : t("getCode")}
-                    </button>
+                    </button> */}
                 </div>
                 {formik.touched.phone && formik.errors.phone && (
                     <p className="text-xs text-red-500">{formik.errors.phone}</p>
