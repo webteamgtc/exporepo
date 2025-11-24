@@ -13,7 +13,7 @@ import { toast } from "react-toastify";
 import Select from "react-select";
 import { useTranslations, useLocale } from "next-intl";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { useRouter } from "@/i18n/navigation";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import { dialCodeByAlpha2 } from "../context/useDialCodes";
 
@@ -72,6 +72,8 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
   const campaign = params.get("utm_source");
   const fbclid = params.get("fbclid");
   const qrCodeId = params.get("id");
+  const path = usePathname();
+
   const router = useRouter();
   const t = useTranslations("home.form");
   const locale = useLocale();
@@ -617,31 +619,28 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
           By submitting your application you confirm that you have read,
           understood and agreed to all the{" "}
           <a
-            className="text-secondary"
+            className="text-secondary link"
             data-v-30779926=""
             href="https://www.gtcfx.com/terms-and-conditions"
             target="_blank"
-            className="link"
           >
             Terms And Conditions
           </a>
           ,{" "}
           <a
-            className="text-secondary"
+            className="text-secondary link"
             data-v-30779926=""
             href="https://gtcfx-bucket.s3.ap-southeast-1.amazonaws.com/pdf-files/5000USC-T%26C.pdf"
             target="_blank"
-            className="link"
           >
             Bonus Terms and Conditions
           </a>{" "}
           and{" "}
           <a
-            className="text-secondary"
+            className="text-secondary link"
             data-v-30779926=""
             href="https://www.gtcfx.com/legal-policies-client-agreements"
             target="_blank"
-            className="link"
           >
             Client Agreement .
           </a>
