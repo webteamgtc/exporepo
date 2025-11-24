@@ -21,7 +21,7 @@ export default function HeroSection() {
           <img
             src="/lucky/falcon.webp"
             alt="Falcon Background"
-            className="w-full h-full object-contain object-top opacity-90"
+            className="w-full h-full object-contain object-top opacity-30 md:opacity-90"
           />
         </div>
       </div>
@@ -39,15 +39,15 @@ export default function HeroSection() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left Side - Text Content */}
-          <div className="relative z-10">
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
+          <div className="relative z-10 text-center lg:text-left">
+            <h2 className="text-2xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6 pt-12">
               Your Ticket to Win Big at the Golden Falcon Awards!
             </h2>
             <p className="text-lg md:text-xl text-gray-200 mb-8 leading-relaxed">
               Join the exclusive trading event of the year and get a chance to
-              win up to $500,000 in cash prizes!
+              win up to $250,000 in cash prizes!
             </p>
-            <div className="flex items-center gap-3 text-white mb-8">
+            <div className="flex items-center justify-center md:justify-start gap-3 text-white mb-8 text-center md:text-left">
               <svg
                 className="w-6 h-6 text-[#B48755]"
                 fill="none"
@@ -61,7 +61,7 @@ export default function HeroSection() {
                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                 />
               </svg>
-              <span className="text-lg font-semibold">
+              <span className="text-lg font-semibold text-secondary">
                 December 7th, 6PM-9PM
               </span>
             </div>
@@ -74,7 +74,7 @@ export default function HeroSection() {
                 Sign Up & Get Your Lucky Number
               </h3>
               <p className="text-center text-[#B48755] font-semibold text-lg mb-4">
-                Sign Up Now & Win Up to $500,000 Cash Prize!
+                Sign Up Now & Win Up to $250,000 Cash Prize!
               </p>
               <p className="text-sm text-gray-600 text-center mb-6 leading-relaxed">
                 This is your chance to experience trading rewards like never

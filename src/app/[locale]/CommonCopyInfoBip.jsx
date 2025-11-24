@@ -584,7 +584,7 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
             data-v-30779926=""
             href="https://www.gtcfx.com/terms-and-conditions"
             target="_blank"
-            class="link"
+            className="link"
           >
             Terms And Conditions
           </a>
@@ -594,7 +594,7 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
             data-v-30779926=""
             href="https://gtcfx-bucket.s3.ap-southeast-1.amazonaws.com/pdf-files/5000USC-T%26C.pdf"
             target="_blank"
-            class="link"
+            className="link"
           >
             Bonus Terms and Conditions
           </a>{" "}
@@ -604,7 +604,7 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
             data-v-30779926=""
             href="https://www.gtcfx.com/legal-policies-client-agreements"
             target="_blank"
-            class="link"
+            className="link"
           >
             Client Agreement .
           </a>
