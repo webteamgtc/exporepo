@@ -69,7 +69,9 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
   const [isDisable, setIsDisable] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
+  const campaign = params.get("utm_source");
+  const fbclid = params.get("fbclid");
+  const qrCodeId = params.get("id");
   const router = useRouter();
   const t = useTranslations("home.form");
   const locale = useLocale();
@@ -392,6 +394,41 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
   return (
     <form onSubmit={formik.handleSubmit} className="space-y-4">
       {/* First + Last Name */}
+      <input
+        name="fbclid"
+        className="hidden"
+        type="text"
+        onChange={formik.handleChange}
+        value={
+          !formik.values.fbclid || formik.values.fbclid === ""
+            ? (formik.values.fbclid = fbclid)
+            : (formik.values.fbclid = fbclid)
+        }
+      />
+      <input
+        name="utm_campain"
+        className="hidden"
+        type="text"
+        onChange={formik.handleChange}
+        onBlur={formik.handleBlur}
+        value={
+          !formik.values.utm_campain || formik.values.utm_campain === ""
+            ? (formik.values.utm_campain = path)
+            : (formik.values.utm_campain = path)
+        }
+      />
+      <input
+        name="utm_source"
+        className="hidden"
+        type="text"
+        onChange={formik.handleChange}
+        onBlur={formik.handleBlur}
+        value={
+          !formik.values.utm_source || formik.values.utm_source === ""
+            ? (formik.values.utm_source = campaign)
+            : (formik.values.utm_source = campaign)
+        }
+      />
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
           <label className={`text-sm ${color} mb-1`}>{t("firstName")}</label>

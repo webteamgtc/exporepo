@@ -85,7 +85,7 @@ export default function HeroSection() {
 
               {/* Form */}
               <CommonMainFormCopy
-                zapierUrl="https://hooks.zapier.com/hooks/catch/16420445/uskukap/"
+                zapierUrl="https://hooks.zapier.com/hooks/catch/16420445/uzc4qag/"
                 successPath="/success"
               />
             </div>
