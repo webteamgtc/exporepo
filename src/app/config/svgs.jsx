@@ -2,7 +2,7 @@ export const renderSvg = (value) => {
     switch (value) {
         case "1":
             return <svg
-                class="card-icon"
+                className="card-icon"
                 width="82"
                 height="82"
                 viewBox="0 0 82 82"
@@ -140,7 +140,7 @@ export const renderSvg = (value) => {
             </svg>
         case "2":
             return <svg
-                class="card-icon"
+                className="card-icon"
                 xmlns="http://www.w3.org/2000/svg"
                 width="82"
                 height="82"
@@ -273,7 +273,7 @@ export const renderSvg = (value) => {
             </svg>
         case "3":
             return <svg
-                class="card-icon"
+                className="card-icon"
                 xmlns="http://www.w3.org/2000/svg"
                 width="82"
                 height="82"
@@ -456,7 +456,7 @@ export const renderSvg = (value) => {
             </svg>
         default:
             return <svg
-                class="card-icon"
+                className="card-icon"
                 width="82"
                 height="82"
                 viewBox="0 0 82 82"

@@ -34,7 +34,7 @@ export default function StepsToWinSection() {
    <section className="bg-gradient-to-b from-[#000021] via-[#253188] to-[#0e1247] py-12 md:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section heading */}
-        <h3 className="text-3xl md:text-4xl font-bold text-white text-center mb-10 md:mb-14">
+        <h3 className="text-3xl md:text-4xl font-bold text-secondary text-center mb-10 md:mb-14">
           Steps into the Golden Hour of Wins!
         </h3>
 
@@ -98,7 +98,7 @@ export default function StepsToWinSection() {
                 </div>
 
                 {/* Title */}
-                <h4 className="text-xl md:text-2xl font-bold text-white mb-2 md:mb-3">
+                <h4 className="text-xl md:text-2xl font-bold text-secondary mb-2 md:mb-3">
                   {step.title}
                 </h4>
 
@@ -128,9 +128,17 @@ export default function StepsToWinSection() {
           <p className="text-base md:text-lg text-white font-semibold mb-5 md:mb-6 pt-10">
             15 Lucky Numbers Win: Every winner gets exciting cash rewards live on-air.
           </p>
-          <button className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-[#E2B15A] to-[#D18A34] px-8 md:px-10 py-3 text-sm md:text-base font-semibold text-[#1B1441] shadow-lg shadow-black/30 hover:brightness-110 transition">
-            Learn More
-          </button>
+         <button
+  onClick={() =>
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    })
+  }
+  className="bg-[#B48755] hover:bg-[#8B6914] text-white font-bold px-8 py-4 rounded-lg text-base md:text-lg transition-colors shadow-lg"
+>
+  Sign Up & Get Lucky
+</button>
         </div>
       </div>
     </section>
