@@ -319,7 +319,7 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
             locale,
           })
         );
-        await axios.post(zapierUrl, JSON.stringify(values));
+        await axios.post(zapierUrl, JSON.stringify({...values,token: token}));
         toast.success(t("thankYou1"));
         localStorage.setItem(
           "user",
