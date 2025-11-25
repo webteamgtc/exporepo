@@ -57,7 +57,12 @@ const selectStyles = {
   }),
 };
 
-const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
+const CommonMainFormCopy = ({
+  zapierUrl,
+  successPath,
+  isMobile = false,
+  isPreAccount = false,
+}) => {
   const { countryData } = useLocationDetail();
   const [otpLoading, setOtpLoading] = useState(false);
   const [phoneOtpLoading, setPhoneOtpLoading] = useState(false);
@@ -160,6 +165,7 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
       confirmPassword: genPassword,
       invitation: token,
       terms: false,
+      account_no: "",
     },
     validationSchema: Yup.object({
       nickname: Yup.string().required(t("errors.firstNameRequired")),
@@ -195,6 +201,9 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
       otp: Yup.string()
         .length(6, t("errors.otpLength"))
         .required(t("errors.otpRequired")),
+      account_no: isPreAccount
+        ? Yup.string().required("Account number is required")
+        : Yup.string(),
       terms: Yup.bool().oneOf([true], t("errors.termsRequired")),
     }),
     onSubmit: async (values) => {
@@ -235,71 +244,70 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
         }
 
         // 1) create CRM client
-        const res = await fetch("/api/create-client", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            user_account_type: 0,
-            country: values?.country,
-            first_name: values?.nickname,
-            last_name: values?.last_name,
-            email: values?.email,
-            area_code: areaCode ?? values?.country ?? "92", // use dial code, not country ISO
-            phone: values?.phone,
-            pwd: values?.password,
-            token: values?.invitation,
-          }),
-        });
+        if (isPreAccount==false) {
+          const res = await fetch("/api/create-client", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              user_account_type: 0,
+              country: values?.country,
+              first_name: values?.nickname,
+              last_name: values?.last_name,
+              email: values?.email,
+              area_code: areaCode ?? values?.country ?? "92", // use dial code, not country ISO
+              phone: values?.phone,
+              pwd: values?.password,
+              token: values?.invitation,
+            }),
+          });
 
-        const createData = await res.json();
-        if (!res.ok || createData?.ret_code !== 0) {
-          console.error("Create client failed:", createData);
-          toast.error(createData?.ret_msg || "Create client failed");
-          return;
+          const createData = await res.json();
+          if (!res.ok || createData?.ret_code !== 0) {
+            console.error("Create client failed:", createData);
+            toast.error(createData?.ret_msg || "Create client failed");
+            return;
+          }
+
+          const client_id =
+            createData?.ret_msg?.client_id ?? createData?.client_id;
+
+          // 2) create MT account
+          const payloadAddUser = {
+            client_id,
+            name: values?.nickname,
+            comment: "Forex Expo Dubai 2025",
+            account_type: 0, // 0=trading, 2=agent
+            manager_id: 3, // 1=MT4, 3=MT5
+            // ESCAPE backslashes in JS string:
+            account_group: "real\\OZ\\MKT\\USC-XSCP00000-V",
+            leverage: 100, // confirm format (100 vs "1:100")
+            // master_pwd: values?.password,      // optional
+            // investor_pwd: "ViewOnly123",       // optional
+          };
+
+          const res2 = await fetch("/api/create-mt", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payloadAddUser),
+          });
+
+          const mtData = await res2.json();
+          if (!res2.ok || mtData?.ret_code !== 0) {
+            console.error("Create MT account failed:", mtData);
+            toast.error(mtData?.ret_msg || "Create MT account failed");
+            return;
+          }
+
+          const userUpdate = await axios.post(`/api/mt5-server`, {
+            Login: mtData?.ret_msg?.login,
+            Comment: "Forex Expo Dubai 2025",
+          });
         }
-
-        const client_id =
-          createData?.ret_msg?.client_id ?? createData?.client_id;
-
-        // 2) create MT account
-        const payloadAddUser = {
-          client_id,
-          name: values?.nickname,
-          comment: "Forex Expo Dubai 2025",
-          account_type: 0, // 0=trading, 2=agent
-          manager_id: 3, // 1=MT4, 3=MT5
-          // ESCAPE backslashes in JS string:
-          account_group: "real\\OZ\\MKT\\USC-XSCP00000-V",
-          leverage: 100, // confirm format (100 vs "1:100")
-          // master_pwd: values?.password,      // optional
-          // investor_pwd: "ViewOnly123",       // optional
-        };
-
-        const res2 = await fetch("/api/create-mt", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payloadAddUser),
-        });
-
-        const mtData = await res2.json();
-        if (!res2.ok || mtData?.ret_code !== 0) {
-          console.error("Create MT account failed:", mtData);
-          toast.error(mtData?.ret_msg || "Create MT account failed");
-          return;
-        }
-
-        const userUpdate = await axios.post(`/api/mt5-server`, {
-          Login: mtData?.ret_msg?.login,
-          Comment: "Forex Expo Dubai 2025",
-        });
         // 3) continue your flow
         await axios.post(
           "/api/lucky-draw-email",
           JSON.stringify({
             nickname: values?.nickname,
-            invest_password: mtData?.ret_msg?.investor_pwd,
-            password: mtData?.ret_msg?.master_pwd,
-            user: mtData?.ret_msg?.login,
             email: values?.email,
             cPassword: genPassword,
             token: token,
@@ -307,19 +315,28 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
           })
         );
         // 3) continue your flow
+        if (isPreAccount == false) {
+          await axios.post(
+            "/api/email",
+            JSON.stringify({
+              name: values?.nickname,
+              invest_password: mtData?.ret_msg?.investor_pwd,
+              password: mtData?.ret_msg?.master_pwd,
+              user: mtData?.ret_msg?.login,
+              email: values?.email,
+              cPassword: genPassword,
+              locale,
+            })
+          );
+        }
         await axios.post(
-          "/api/email",
+          zapierUrl,
           JSON.stringify({
-            name: values?.nickname,
-            invest_password: mtData?.ret_msg?.investor_pwd,
-            password: mtData?.ret_msg?.master_pwd,
-            user: mtData?.ret_msg?.login,
-            email: values?.email,
-            cPassword: genPassword,
-            locale,
+            ...values,
+            token: token,
+            account_no: isPreAccount ? values?.account_no : "",
           })
         );
-        await axios.post(zapierUrl, JSON.stringify({...values,token: token}));
         toast.success(t("thankYou1"));
         localStorage.setItem(
           "user",
@@ -585,6 +602,26 @@ const CommonMainFormCopy = ({ zapierUrl, successPath, isMobile = false }) => {
                             {t("verifyCode")}
                         </button> */}
           </div>
+        </div>
+      )}
+      {isPreAccount && (
+        <div>
+          <label className={`text-sm ${color} mb-1`}>Account Number</label>
+          <input
+            type="text"
+            placeholder={"Account Number"}
+            {...formik.getFieldProps("account_no")}
+            className={`w-full border px-3 py-2 rounded-md text-primary ${
+              isMobile ? "bg-[#33335b]" : ""
+            } ${
+              formik.touched.account_no && formik.errors.account_no
+                ? "border-red-500"
+                : "border-gray-300"
+            }`}
+          />
+          {formik.touched.account_no && formik.errors.account_no && (
+            <p className="text-xs text-red-500">{formik.errors.account_no}</p>
+          )}
         </div>
       )}
 
