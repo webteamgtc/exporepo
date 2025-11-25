@@ -21,7 +21,7 @@ export default function HeroSection({ isPreAccount = false }) {
           <img
             src="/lucky/falcon.webp"
             alt="Falcon Background"
-            className="w-full h-full object-contain object-top opacity-30 md:opacity-90"
+            className="w-full h-full object-contain object-top opacity-30 md:opacity-40"
           />
         </div>
       </div>
@@ -40,7 +40,9 @@ export default function HeroSection({ isPreAccount = false }) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left Side - Text Content */}
           <div className="relative z-10 text-center lg:text-left">
-            <h2 className="text-2xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6 pt-12">
+            <p className="text-base md:text-3xl text-secondary font-bold pt-10">Exclusive Offer for New Sign-Ups Only</p>
+
+            <h2 className="text-2xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6 pt-3">
               Your Ticket to Win Big at the Golden Falcon Awards!
             </h2>
             <p className="text-lg md:text-xl text-gray-200 mb-8 leading-relaxed">
