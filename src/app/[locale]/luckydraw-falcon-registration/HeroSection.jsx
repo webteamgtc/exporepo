@@ -3,7 +3,7 @@ import CommonMainFormCopy from "../CommonCopyInfoBip";
 import CommonMainForm from "../commonForm";
 import Image from "next/image";
 
-export default function HeroSection() {
+export default function HeroSection({ isPreAccount = false }) {
   return (
     <section className="relative overflow-hidden">
       {/* Gradient Background - Dark on top, lighter on bottom */}
@@ -85,8 +85,13 @@ export default function HeroSection() {
 
               {/* Form */}
               <CommonMainFormCopy
-                zapierUrl="https://hooks.zapier.com/hooks/catch/16420445/uzc4qag/"
+                zapierUrl={
+                  isPreAccount
+                    ? "https://hooks.zapier.com/hooks/catch/16420445/uzn1mth/"
+                    : "https://hooks.zapier.com/hooks/catch/16420445/uzc4qag/"
+                }
                 successPath="/success"
+                isPreAccount={isPreAccount}
               />
             </div>
           </div>
