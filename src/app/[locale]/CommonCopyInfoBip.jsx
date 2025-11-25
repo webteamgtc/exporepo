@@ -275,7 +275,7 @@ const CommonMainFormCopy = ({
           const payloadAddUser = {
             client_id,
             name: values?.nickname,
-            comment: "Forex Expo Dubai 2025",
+            comment: "Falcon Awards 2025",
             account_type: 0, // 0=trading, 2=agent
             manager_id: 3, // 1=MT4, 3=MT5
             // ESCAPE backslashes in JS string:
