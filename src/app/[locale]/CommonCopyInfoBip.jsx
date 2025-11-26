@@ -229,6 +229,9 @@ const CommonMainFormCopy = ({
           values.country, // country
           companionsSummary, // companions (6th column)
           token, // token
+          path,
+          campaign,
+          new Date().toISOString(),
         ];
 
         const resSheet = await fetch("/api/sheets", {
