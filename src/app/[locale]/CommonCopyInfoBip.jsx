@@ -209,6 +209,8 @@ const CommonMainFormCopy = ({
     onSubmit: async (values) => {
       const areaCode = dialCodeByAlpha2[values?.country];
       setLoading(true);
+      let mtData = null;
+
       try {
         const token = await getUniqueToken();
         const companionsSummary =
@@ -221,33 +223,9 @@ const CommonMainFormCopy = ({
                 .join(" | ")
             : "";
 
-        const row = [
-          values.nickname, // firstName
-          values.last_name, // lastName
-          values.email, // email
-          values.phone, // phone
-          values.country, // country
-          companionsSummary, // companions (6th column)
-          token, // token
-          path,
-          campaign,
-          new Date().toISOString(),
-        ];
-
-        const resSheet = await fetch("/api/sheets", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ withObject: true, values: [row] }),
-        });
-
-        const json = await resSheet.json();
-        if (!json.ok) {
-          toast.error(json.error || "Failed to save.");
-          return;
-        }
-
-        // 1) create CRM client
-        if (isPreAccount==false) {
+        // STEP 1: Execute all critical APIs first (before saving to sheet)
+        if (isPreAccount == false) {
+          // 1) create CRM client
           const res = await fetch("/api/create-client", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -268,6 +246,7 @@ const CommonMainFormCopy = ({
           if (!res.ok || createData?.ret_code !== 0) {
             console.error("Create client failed:", createData);
             toast.error(createData?.ret_msg || "Create client failed");
+            setLoading(false);
             return;
           }
 
@@ -294,52 +273,118 @@ const CommonMainFormCopy = ({
             body: JSON.stringify(payloadAddUser),
           });
 
-          const mtData = await res2.json();
+          mtData = await res2.json();
           if (!res2.ok || mtData?.ret_code !== 0) {
             console.error("Create MT account failed:", mtData);
             toast.error(mtData?.ret_msg || "Create MT account failed");
+            setLoading(false);
             return;
           }
 
-          const userUpdate = await axios.post(`/api/mt5-server`, {
-            Login: mtData?.ret_msg?.login,
-            Comment: "Forex Expo Dubai 2025",
-          });
+          // 3) update MT5 server
+          try {
+            const userUpdate = await axios.post(`/api/mt5-server`, {
+              Login: mtData?.ret_msg?.login,
+              Comment: "Forex Expo Dubai 2025",
+            });
+            
+            // Check if the response indicates success
+            if (userUpdate?.status !== 200 && userUpdate?.status !== 201) {
+              throw new Error("MT5 server update failed");
+            }
+          } catch (mt5Error) {
+            console.error("MT5 server update failed:", mt5Error);
+            toast.error(
+              mt5Error?.response?.data?.message ||
+                mt5Error?.message ||
+                "MT5 server update failed"
+            );
+            setLoading(false);
+            return;
+          }
         }
-        // 3) continue your flow
-        await axios.post(
-          "/api/lucky-draw-email",
-          JSON.stringify({
-            nickname: values?.nickname,
-            email: values?.email,
-            cPassword: genPassword,
-            token: token,
-            locale,
-          })
-        );
-        // 3) continue your flow
-        if (isPreAccount == false) {
+
+        // STEP 2: If we reach here, all critical APIs succeeded
+        // Now save to sheet only after all APIs succeeded
+        const row = [
+          values.nickname, // firstName
+          values.last_name, // lastName
+          values.email, // email
+          values.phone, // phone
+          values.country, // country
+          companionsSummary, // companions (6th column)
+          token, // token
+          path,
+          campaign,
+          new Date().toISOString(),
+        ];
+
+        const resSheet = await fetch("/api/sheets", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ withObject: true, values: [row] }),
+        });
+
+        const json = await resSheet.json();
+        if (!json.ok) {
+          toast.error(json.error || "Failed to save to sheet.");
+          setLoading(false);
+          return;
+        }
+
+        // STEP 3: Send emails only after sheet is saved
+        try {
           await axios.post(
-            "/api/email",
+            "/api/lucky-draw-email",
             JSON.stringify({
-              name: values?.nickname,
-              invest_password: mtData?.ret_msg?.investor_pwd,
-              password: mtData?.ret_msg?.master_pwd,
-              user: mtData?.ret_msg?.login,
+              nickname: values?.nickname,
               email: values?.email,
               cPassword: genPassword,
+              token: token,
               locale,
             })
           );
+        } catch (emailError) {
+          console.error("Lucky draw email failed:", emailError);
+          // Continue even if email fails, but log it
         }
-        await axios.post(
-          zapierUrl,
-          JSON.stringify({
-            ...values,
-            token: token,
-            account_no: isPreAccount ? values?.account_no : "",
-          })
-        );
+
+        if (isPreAccount == false && mtData) {
+          try {
+            await axios.post(
+              "/api/email",
+              JSON.stringify({
+                name: values?.nickname,
+                invest_password: mtData?.ret_msg?.investor_pwd,
+                password: mtData?.ret_msg?.master_pwd,
+                user: mtData?.ret_msg?.login,
+                email: values?.email,
+                cPassword: genPassword,
+                locale,
+              })
+            );
+          } catch (emailError) {
+            console.error("Account email failed:", emailError);
+            // Continue even if email fails, but log it
+          }
+        }
+
+        // STEP 4: Send to Zapier
+        try {
+          await axios.post(
+            zapierUrl,
+            JSON.stringify({
+              ...values,
+              token: token,
+              account_no: isPreAccount ? values?.account_no : "",
+            })
+          );
+        } catch (zapierError) {
+          console.error("Zapier webhook failed:", zapierError);
+          // Continue even if Zapier fails, but log it
+        }
+
+        // STEP 5: Success - save to localStorage and redirect
         toast.success(t("thankYou1"));
         localStorage.setItem(
           "user",
@@ -348,8 +393,8 @@ const CommonMainFormCopy = ({
         router.push(successPath);
         formik.resetForm();
       } catch (err) {
-        console.error(err);
-        toast.error(err || "Something went wrong");
+        console.error("Form submission error:", err);
+        toast.error(err?.response?.data?.message || err?.message || "Something went wrong");
       } finally {
         setLoading(false);
       }
