@@ -223,7 +223,7 @@ const CommonMainFormCopy = ({
 
         const row = [
           values.nickname, // firstName
-          values.nickname, // lastName
+          values.last_name, // lastName
           values.email, // email
           values.phone, // phone
           values.country, // country
