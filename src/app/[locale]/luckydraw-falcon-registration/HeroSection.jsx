@@ -80,7 +80,7 @@ export default function HeroSection({ isPreAccount = false }) {
               </p>
               <p className="text-sm text-gray-600 text-center mb-6 leading-relaxed">
                 This is your chance to experience trading rewards like never
-                before! Simply sign up, receive $5000 USC instantly, and check
+                before! Simply sign up, receive 5000 USC instantly, and check
                 your inbox for your Lucky Card, where your secret Lucky Number
                 is hidden.
               </p>
