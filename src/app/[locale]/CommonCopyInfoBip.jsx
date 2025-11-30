@@ -70,10 +70,11 @@ const CommonMainFormCopy = ({
   const token = params.get("token");
   const [showOtp, setShowOtp] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [storedOtp, setStoredOtp] = useState("");
   const [isDisable, setIsDisable] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [otpPhoneNumber, setOtpPhoneNumber] = useState("");
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
   const campaign = params.get("utm_source");
   const fbclid = params.get("fbclid");
   const qrCodeId = params.get("id");
@@ -97,21 +98,6 @@ const CommonMainFormCopy = ({
       </div>
     ),
   }));
-
-  useEffect(() => {
-    if (countryData?.country) {
-      const filterData = countryList.find(
-        (item) =>
-          item?.en_short_name == countryData.country ||
-          item?.alpha_2_code == countryData.country
-      );
-      formik.setFieldValue(
-        "country",
-        filterData ? filterData?.alpha_2_code : ""
-      );
-    }
-    formik.setFieldValue("invitation", token || "8owwwwwwzcowwwww");
-  }, [countryData?.country, countryList, params]);
 
   const getIso2ByCountryName = (name) => {
     const hit = countryList.find((c) => c.en_short_name === name);
@@ -401,6 +387,35 @@ const CommonMainFormCopy = ({
     },
   });
 
+  // Set country and invitation after formik is initialized
+  useEffect(() => {
+    if (countryData?.country) {
+      const filterData = countryList.find(
+        (item) =>
+          item?.en_short_name == countryData.country ||
+          item?.alpha_2_code == countryData.country
+      );
+      formik.setFieldValue(
+        "country",
+        filterData ? filterData?.alpha_2_code : ""
+      );
+    }
+    formik.setFieldValue("invitation", token || "8owwwwwwzcowwwww");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [countryData?.country, countryList, params, token]);
+
+  // Reset OTP verification when phone number changes
+  useEffect(() => {
+    if (otpPhoneNumber && formik.values.phone && formik.values.phone !== otpPhoneNumber) {
+      // Phone number changed after OTP was sent, reset OTP state
+      setShowOtp(false);
+      setIsDisable(true);
+      formik.setFieldValue("otp", "");
+      setOtpPhoneNumber("");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formik.values.phone, otpPhoneNumber]);
+
   const sendPhoneVerificationCode = () => {
     if (!formik.values.phone) {
       toast.error(t("errors.phoneRequired"));
@@ -421,12 +436,10 @@ const CommonMainFormCopy = ({
       .then((res) => {
         if (res?.data?.success || res?.data?.message) {
           setShowOtp(true);
-          setStoredOtp(
-            res?.data?.otpMasked?.slice(4, -3) ||
-              res?.data?.message?.slice(4, -3)
-          );
           formik.setFieldValue("otp", "");
           setIsDisable(true);
+          // Store the phone number that OTP was sent to (for tracking changes)
+          setOtpPhoneNumber(formik.values.phone);
           toast.success(t("otpSent"));
         } else {
           toast.error(res?.data?.message || t("otpFail"));
@@ -445,14 +458,39 @@ const CommonMainFormCopy = ({
   const isPhoneValid =
     formik.values.phone && isValidPhoneNumber(formik.values.phone);
 
-  // verify OTP
-  const verifyOtpCode = (otp) => {
-    if (otp === storedOtp) {
-      toast.success(t("otpSuccess"));
-      setShowOtp(false);
-      setIsDisable(false);
-    } else {
-      toast.error(t("otpFail"));
+  // Check if phone number is from China
+  const isChinaPhone =
+    formik.values.country === "CN" ||
+    (formik.values.phone &&
+      parsePhoneNumberFromString(formik.values.phone)?.country === "CN");
+
+  // verify OTP server-side
+  const verifyOtpCode = async (otp) => {
+    if (!otp || otp.length !== 6) {
+      return;
+    }
+
+    setVerifyingOtp(true);
+    try {
+      const res = await axios.post("/api/verify-otp", {
+        phone: formik.values.phone,
+        otp: otp,
+      });
+
+      if (res?.data?.success) {
+        toast.success(t("otpSuccess") || "OTP verified successfully");
+        setShowOtp(false);
+        setIsDisable(false);
+      } else {
+        toast.error(res?.data?.message || t("otpFail") || "Invalid OTP");
+      }
+    } catch (error) {
+      console.error("OTP verification error:", error);
+      toast.error(
+        error?.response?.data?.message || error?.message || t("otpFail") || "Failed to verify OTP"
+      );
+    } finally {
+      setVerifyingOtp(false);
     }
   };
 
@@ -583,14 +621,16 @@ const CommonMainFormCopy = ({
                 : "border-gray-300"
             }`}
           />
-          <button
-            type="button"
-            onClick={sendPhoneVerificationCode}
-            disabled={phoneOtpLoading || !isPhoneValid}
-            className="min-h-[41px] bg-[#666684] text-white px-4 py-2 rounded-md text-xs sm:text-sm disabled:opacity-70 disabled:cursor-not-allowed"
-          >
-            {phoneOtpLoading ? t("sending") : t("getCode")}
-          </button>
+          {!isChinaPhone && (
+            <button
+              type="button"
+              onClick={sendPhoneVerificationCode}
+              disabled={phoneOtpLoading || !isPhoneValid}
+              className="min-h-[41px] bg-[#666684] text-white px-4 py-2 rounded-md text-xs sm:text-sm disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              {phoneOtpLoading ? t("sending") : t("getCode")}
+            </button>
+          )}
         </div>
         {formik.touched.phone && formik.errors.phone && (
           <p className="text-xs text-red-500">{formik.errors.phone}</p>
@@ -736,20 +776,22 @@ const CommonMainFormCopy = ({
       )}
 
       {/* Submit */}
-      <button
-        type="submit"
-        disabled={loading}
-        className={`w-full  ${
-          isMobile ? "text-[#000032]" : "text-white"
-        } py-3 rounded-xl font-medium cursor-pointer text-sm disabled:opacity-50`}
-        style={{
-          background: isMobile
-            ? "#fff"
-            : "linear-gradient(135deg, #293794 0%, #000021 100%)",
-        }}
-      >
-        {loading ? "Submitting.." : t("btnText")}
-      </button>
+      {formik.values.country !== "CN" && (
+        <button
+          type="submit"
+          disabled={loading}
+          className={`w-full  ${
+            isMobile ? "text-[#000032]" : "text-white"
+          } py-3 rounded-xl font-medium cursor-pointer text-sm disabled:opacity-50`}
+          style={{
+            background: isMobile
+              ? "#fff"
+              : "linear-gradient(135deg, #293794 0%, #000021 100%)",
+          }}
+        >
+          {loading ? "Submitting.." : t("btnText")}
+        </button>
+      )}
     </form>
   );
 };
