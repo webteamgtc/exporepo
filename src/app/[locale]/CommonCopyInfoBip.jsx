@@ -75,6 +75,7 @@ const CommonMainFormCopy = ({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [otpPhoneNumber, setOtpPhoneNumber] = useState("");
   const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [isOtpVerified, setIsOtpVerified] = useState(false);
   const campaign = params.get("utm_source");
   const fbclid = params.get("fbclid");
   const qrCodeId = params.get("id");
@@ -196,6 +197,13 @@ const CommonMainFormCopy = ({
       const areaCode = dialCodeByAlpha2[values?.country];
       setLoading(true);
       let mtData = null;
+
+      // Check if OTP is verified before proceeding (state is set after server-side verification)
+      if (!isOtpVerified) {
+        toast.error("Please verify your phone number with OTP before submitting.");
+        setLoading(false);
+        return;
+      }
 
       try {
         const token = await getUniqueToken();
@@ -378,6 +386,7 @@ const CommonMainFormCopy = ({
         );
         router.push(successPath);
         formik.resetForm();
+        setIsOtpVerified(false); // Reset OTP verification after successful submission
       } catch (err) {
         console.error("Form submission error:", err);
         toast.error(err?.response?.data?.message || err?.message || "Something went wrong");
@@ -410,6 +419,7 @@ const CommonMainFormCopy = ({
       // Phone number changed after OTP was sent, reset OTP state
       setShowOtp(false);
       setIsDisable(true);
+      setIsOtpVerified(false); // Reset OTP verified status
       formik.setFieldValue("otp", "");
       setOtpPhoneNumber("");
     }
@@ -438,6 +448,7 @@ const CommonMainFormCopy = ({
           setShowOtp(true);
           formik.setFieldValue("otp", "");
           setIsDisable(true);
+          setIsOtpVerified(false); // Reset verification status when new OTP is sent
           // Store the phone number that OTP was sent to (for tracking changes)
           setOtpPhoneNumber(formik.values.phone);
           toast.success(t("otpSent"));
@@ -481,14 +492,17 @@ const CommonMainFormCopy = ({
         toast.success(t("otpSuccess") || "OTP verified successfully");
         setShowOtp(false);
         setIsDisable(false);
+        setIsOtpVerified(true); // Mark OTP as verified
       } else {
         toast.error(res?.data?.message || t("otpFail") || "Invalid OTP");
+        setIsOtpVerified(false); // Ensure it's false on failure
       }
     } catch (error) {
       console.error("OTP verification error:", error);
       toast.error(
         error?.response?.data?.message || error?.message || t("otpFail") || "Failed to verify OTP"
       );
+      setIsOtpVerified(false); // Ensure it's false on error
     } finally {
       setVerifyingOtp(false);
     }
@@ -779,7 +793,7 @@ const CommonMainFormCopy = ({
       {formik.values.country !== "CN" && (
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !isOtpVerified}
           className={`w-full  ${
             isMobile ? "text-[#000032]" : "text-white"
           } py-3 rounded-xl font-medium cursor-pointer text-sm disabled:opacity-50`}
