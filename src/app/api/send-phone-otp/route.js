@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import otpGenerator from "otp-generator";
+import { storeOtp } from "../otp-store";
 
 const INFOBIP_BASE_URL = process.env.INFOBIP_BASE_URL || "";
 const INFOBIP_API_KEY = process.env.INFOBIP_API_KEY || "";
@@ -28,13 +29,16 @@ export async function POST(req) {
       lowerCaseAlphabets: false,
     });
 
+    // Store OTP securely with expiration (not exposed in response)
+    storeOtp("phone", phone, otp);
+
     const messageData = await sendWhatsappOtp({ phone, otp, locale });
 
+    // Return success without exposing OTP in response
     return NextResponse.json(
       {
         success: true,
         message: "OTP sent via WhatsApp.",
-        otpMasked: `5147${otp}351`,
         providerMessageId: messageData.messageId,
         providerStatus: messageData.status?.name,
       },
