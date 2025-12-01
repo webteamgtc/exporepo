@@ -469,12 +469,6 @@ const CommonMainFormCopy = ({
   const isPhoneValid =
     formik.values.phone && isValidPhoneNumber(formik.values.phone);
 
-  // Check if phone number is from China
-  const isChinaPhone =
-    formik.values.country === "CN" ||
-    (formik.values.phone &&
-      parsePhoneNumberFromString(formik.values.phone)?.country === "CN");
-
   // verify OTP server-side
   const verifyOtpCode = async (otp) => {
     if (!otp || otp.length !== 6) {
@@ -635,7 +629,6 @@ const CommonMainFormCopy = ({
                 : "border-gray-300"
             }`}
           />
-          {!isChinaPhone && (
             <button
               type="button"
               onClick={sendPhoneVerificationCode}
@@ -644,7 +637,6 @@ const CommonMainFormCopy = ({
             >
               {phoneOtpLoading ? t("sending") : t("getCode")}
             </button>
-          )}
         </div>
         {formik.touched.phone && formik.errors.phone && (
           <p className="text-xs text-red-500">{formik.errors.phone}</p>
@@ -790,7 +782,6 @@ const CommonMainFormCopy = ({
       )}
 
       {/* Submit */}
-      {formik.values.country !== "CN" && (
         <button
           type="submit"
           disabled={loading || !isOtpVerified}
@@ -805,7 +796,6 @@ const CommonMainFormCopy = ({
         >
           {loading ? "Submitting.." : t("btnText")}
         </button>
-      )}
     </form>
   );
 };
