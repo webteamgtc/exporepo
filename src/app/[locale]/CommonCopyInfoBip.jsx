@@ -17,6 +17,44 @@ import { usePathname, useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import { dialCodeByAlpha2 } from "../context/useDialCodes";
 
+// Blocked fake/temporary email domains
+const BLOCKED_EMAIL_DOMAINS = [
+  "suijiyou.net",
+  "yopmail.com",
+  "yopmail.fr",
+  "yopmail.net",
+  "mailinator.com",
+  "guerrillamail.com",
+  "guerrillamailblock.com",
+  "10minutemail.com",
+  "tempmail.com",
+  "throwaway.email",
+  "temp-mail.org",
+  "mohmal.com",
+  "trashmail.com",
+  "maildrop.cc",
+  "tempail.com",
+  "getnada.com",
+  "mintemail.com",
+  "mytrashmail.com",
+  "sharklasers.com",
+  "spamgourmet.com",
+  "mailnesia.com",
+  "meltmail.com",
+  "mailcatch.com",
+  "emailondeck.com",
+  "fakeinbox.com",
+  "dispostable.com",
+  "emailfake.com",
+  "getairmail.com",
+  "mailin8r.com",
+  "mailme.lv",
+  "tempr.email",
+  "tmpmail.org",
+  "mail.tm",
+  "emailnator.com",
+];
+
 // put above your return()
 const selectStyles = {
   control: (base, state) => ({
@@ -164,6 +202,15 @@ const CommonMainFormCopy = ({
           "no-plus-sign",
           "Email address cannot contain '+'",
           (value) => !value || !value.includes("+")
+        )
+        .test(
+          "blocked-domain",
+          "This email domain is not allowed. Please use a valid email address.",
+          (value) => {
+            if (!value) return true;
+            const emailDomain = value.split("@")[1]?.toLowerCase();
+            return !BLOCKED_EMAIL_DOMAINS.includes(emailDomain);
+          }
         ),
       phone: Yup.string()
         .required(t("errors.phoneRequired"))
@@ -276,26 +323,26 @@ const CommonMainFormCopy = ({
           }
 
           // 3) update MT5 server
-          // try {
-          //   const userUpdate = await axios.post(`/api/mt5-server`, {
-          //     Login: mtData?.ret_msg?.login,
-          //     Comment: "Lucky Draw 2025",
-          //   });
+          try {
+            const userUpdate = await axios.post(`/api/mt5-server`, {
+              Login: mtData?.ret_msg?.login,
+              Comment: "Lucky Draw 2025",
+            });
             
-          //   // Check if the response indicates success
-          //   if (userUpdate?.status !== 200 && userUpdate?.status !== 201) {
-          //     throw new Error("MT5 server update failed");
-          //   }
-          // } catch (mt5Error) {
-          //   console.error("MT5 server update failed:", mt5Error);
-          //   toast.error(
-          //     mt5Error?.response?.data?.message ||
-          //       mt5Error?.message ||
-          //       "MT5 server update failed"
-          //   );
-          //   setLoading(false);
-          //   return;
-          // }
+            // Check if the response indicates success
+            if (userUpdate?.status !== 200 && userUpdate?.status !== 201) {
+              throw new Error("MT5 server update failed");
+            }
+          } catch (mt5Error) {
+            console.error("MT5 server update failed:", mt5Error);
+            toast.error(
+              mt5Error?.response?.data?.message ||
+                mt5Error?.message ||
+                "MT5 server update failed"
+            );
+            setLoading(false);
+            return;
+          }
         }
 
         // STEP 2: If we reach here, all critical APIs succeeded
