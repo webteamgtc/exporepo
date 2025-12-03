@@ -276,26 +276,26 @@ const CommonMainFormCopy = ({
           }
 
           // 3) update MT5 server
-          try {
-            const userUpdate = await axios.post(`/api/mt5-server`, {
-              Login: mtData?.ret_msg?.login,
-              Comment: "Forex Expo Dubai 2025",
-            });
+          // try {
+          //   const userUpdate = await axios.post(`/api/mt5-server`, {
+          //     Login: mtData?.ret_msg?.login,
+          //     Comment: "Lucky Draw 2025",
+          //   });
             
-            // Check if the response indicates success
-            if (userUpdate?.status !== 200 && userUpdate?.status !== 201) {
-              throw new Error("MT5 server update failed");
-            }
-          } catch (mt5Error) {
-            console.error("MT5 server update failed:", mt5Error);
-            toast.error(
-              mt5Error?.response?.data?.message ||
-                mt5Error?.message ||
-                "MT5 server update failed"
-            );
-            setLoading(false);
-            return;
-          }
+          //   // Check if the response indicates success
+          //   if (userUpdate?.status !== 200 && userUpdate?.status !== 201) {
+          //     throw new Error("MT5 server update failed");
+          //   }
+          // } catch (mt5Error) {
+          //   console.error("MT5 server update failed:", mt5Error);
+          //   toast.error(
+          //     mt5Error?.response?.data?.message ||
+          //       mt5Error?.message ||
+          //       "MT5 server update failed"
+          //   );
+          //   setLoading(false);
+          //   return;
+          // }
         }
 
         // STEP 2: If we reach here, all critical APIs succeeded

@@ -6,7 +6,7 @@ const STEPS = [
   {
     id: 1,
     title: "Sign Up for Free",
-    description: "Complete your quick registration and get 5000 USC instantly.",
+    description: "Complete your quick registration and start trading with us.",
     icon: "gift",
     image: "/lucky/box1.webp",      // change to your real path
     imageAlt: "Money bag and coins",
@@ -22,7 +22,7 @@ const STEPS = [
   {
     id: 3,
     title: "Tune in on 7th December (6–9 PM)",
-    description: "Complete your quick registration and get 5000 USC instantly.",
+    description: "Complete your quick registration and start trading with us.",
     icon: "play",
     image: "/lucky/box3.webp",        // change to your real path
     imageAlt: "Live prize box with coins",

@@ -11,14 +11,14 @@ const mt5Instance = new Metatrader5("mtapi.gtcfx.com", 443, {
 async function clientPipeline(credentials) {
   const userResponse = await mt5Instance.users.updateUser(credentials);
 
-  const depositPayload = {
-    login: credentials?.Login,
-    comment: "Promo-Credit-USC",
-    balance: 5000,
-    type: 3,
-  };
+  // const depositPayload = {
+  //   login: credentials?.Login,
+  //   comment: "Promo-Credit-USC",
+  //   balance: 0,
+  //   type: 3,
+  // };
 
-  const depositBalance = await mt5Instance.trade.updateTradeBalanceGet(depositPayload)
+  // const depositBalance = await mt5Instance.trade.updateTradeBalanceGet(depositPayload)
 
   if (!userResponse?.Login) {
     return {
@@ -30,7 +30,7 @@ async function clientPipeline(credentials) {
   return {
     message: "Client record updated successfully",
     success: true,
-    ticket: depositBalance?.ticket || "ticket",
+    // ticket: depositBalance?.ticket || "ticket",
     user: userResponse.Login,
   };
 }
