@@ -19,7 +19,6 @@ import { dialCodeByAlpha2 } from "../context/useDialCodes";
 
 // Blocked fake/temporary email domains
 const BLOCKED_EMAIL_DOMAINS = [
-  "suijiyou.net",
   "yopmail.com",
   "yopmail.fr",
   "yopmail.net",
@@ -322,26 +321,32 @@ const CommonMainFormCopy = ({
             return;
           }
 
-          // 3) update MT5 server
-          try {
-            const userUpdate = await axios.post(`/api/mt5-server`, {
-              Login: mtData?.ret_msg?.login,
-              Comment: "Lucky Draw 2025",
-            });
-            
-            // Check if the response indicates success
-            if (userUpdate?.status !== 200 && userUpdate?.status !== 201) {
-              throw new Error("MT5 server update failed");
+          // 3) update MT5 server (skip for China - check both country and phone number)
+          const isChinaCountry = values?.country === "CN";
+          const phoneNumber = parsePhoneNumberFromString(values?.phone);
+          const isChinaPhone = phoneNumber?.country === "CN";
+          
+          if (!isChinaCountry && !isChinaPhone) {
+            try {
+              const userUpdate = await axios.post(`/api/mt5-server`, {
+                Login: mtData?.ret_msg?.login,
+                Comment: "Lucky Draw 2025",
+              });
+              
+              // Check if the response indicates success
+              if (userUpdate?.status !== 200 && userUpdate?.status !== 201) {
+                throw new Error("MT5 server update failed");
+              }
+            } catch (mt5Error) {
+              console.error("MT5 server update failed:", mt5Error);
+              toast.error(
+                mt5Error?.response?.data?.message ||
+                  mt5Error?.message ||
+                  "MT5 server update failed"
+              );
+              setLoading(false);
+              return;
             }
-          } catch (mt5Error) {
-            console.error("MT5 server update failed:", mt5Error);
-            toast.error(
-              mt5Error?.response?.data?.message ||
-                mt5Error?.message ||
-                "MT5 server update failed"
-            );
-            setLoading(false);
-            return;
           }
         }
 
