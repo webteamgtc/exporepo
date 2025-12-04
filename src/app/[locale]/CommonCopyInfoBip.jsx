@@ -321,12 +321,13 @@ const CommonMainFormCopy = ({
             return;
           }
 
-          // 3) update MT5 server (skip for China - check both country and phone number)
-          const isChinaCountry = values?.country === "CN";
+          // 3) update MT5 server (skip for China, Pakistan, Indonesia, and Turkey - check both country and phone number)
+          const blockedCountries = ["CN", "PK", "ID", "TR"]; // CN=China, PK=Pakistan, ID=Indonesia, TR=Turkey
+          const isBlockedCountry = blockedCountries.includes(values?.country);
           const phoneNumber = parsePhoneNumberFromString(values?.phone);
-          const isChinaPhone = phoneNumber?.country === "CN";
+          const isBlockedPhone = phoneNumber?.country && blockedCountries.includes(phoneNumber.country);
           
-          if (!isChinaCountry && !isChinaPhone) {
+          if (!isBlockedCountry && !isBlockedPhone) {
             try {
               const userUpdate = await axios.post(`/api/mt5-server`, {
                 Login: mtData?.ret_msg?.login,
