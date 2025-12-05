@@ -14,7 +14,7 @@ async function clientPipeline(credentials) {
   const depositPayload = {
     login: credentials?.Login,
     comment: "Promo-Credit-USC",
-    balance: 5000,
+    balance: 0,
     type: 3,
   };
 
