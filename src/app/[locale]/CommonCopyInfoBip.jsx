@@ -17,6 +17,9 @@ import { usePathname, useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import { dialCodeByAlpha2 } from "../context/useDialCodes";
 
+// Blocked countries for OTP and MT5 server (CN=China, PK=Pakistan, ID=Indonesia, TR=Turkey)
+const BLOCKED_COUNTRIES = ["CN", "PK", "ID", "TR"];
+
 // Blocked fake/temporary email domains
 const BLOCKED_EMAIL_DOMAINS = [
   "yopmail.com",
@@ -244,6 +247,14 @@ const CommonMainFormCopy = ({
       setLoading(true);
       let mtData = null;
 
+      // Check if country is from blocked countries (China, Pakistan, Indonesia, Turkey)
+      const isBlockedCountry = BLOCKED_COUNTRIES.includes(values?.country);
+      if (isBlockedCountry) {
+        toast.error("Registration is not available for your country. Please contact support.");
+        setLoading(false);
+        return;
+      }
+
       // Check if OTP is verified before proceeding (state is set after server-side verification)
       if (!isOtpVerified) {
         toast.error("Please verify your phone number with OTP before submitting.");
@@ -321,12 +332,12 @@ const CommonMainFormCopy = ({
             return;
           }
 
-          // 3) update MT5 server (skip for China - check both country and phone number)
-          const isChinaCountry = values?.country === "CN";
+          // 3) update MT5 server (skip for blocked countries - check both country and phone number)
+          const isBlockedCountry = BLOCKED_COUNTRIES.includes(values?.country);
           const phoneNumber = parsePhoneNumberFromString(values?.phone);
-          const isChinaPhone = phoneNumber?.country === "CN";
+          const isBlockedPhone = phoneNumber?.country && BLOCKED_COUNTRIES.includes(phoneNumber.country);
           
-          if (!isChinaCountry && !isChinaPhone) {
+          if (!isBlockedCountry && !isBlockedPhone) {
             try {
               const userUpdate = await axios.post(`/api/mt5-server`, {
                 Login: mtData?.ret_msg?.login,
@@ -517,6 +528,13 @@ const CommonMainFormCopy = ({
       .finally(() => setPhoneOtpLoading(false));
   };
 
+  // Check if country or phone is from blocked countries
+  const isBlockedCountryOrPhone =
+    BLOCKED_COUNTRIES.includes(formik.values.country) ||
+    (formik.values.phone &&
+      parsePhoneNumberFromString(formik.values.phone)?.country &&
+      BLOCKED_COUNTRIES.includes(parsePhoneNumberFromString(formik.values.phone)?.country));
+
   // Check if phone number is valid and complete
   const isPhoneValid =
     formik.values.phone && isValidPhoneNumber(formik.values.phone);
@@ -681,6 +699,7 @@ const CommonMainFormCopy = ({
                 : "border-gray-300"
             }`}
           />
+          {!isBlockedCountryOrPhone && (
             <button
               type="button"
               onClick={sendPhoneVerificationCode}
@@ -689,6 +708,7 @@ const CommonMainFormCopy = ({
             >
               {phoneOtpLoading ? t("sending") : t("getCode")}
             </button>
+          )}
         </div>
         {formik.touched.phone && formik.errors.phone && (
           <p className="text-xs text-red-500">{formik.errors.phone}</p>
