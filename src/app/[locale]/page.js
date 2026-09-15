@@ -30,15 +30,10 @@ export default function GTCRegisterWithDesign() {
 
         {/* Candles image on the right */}
         <div
-          className="pointer-events-none absolute inset-y-0 right-0 w-[60%] md:w-[70%] lg:w-[70%] opacity-70"
+          className="pointer-events-none absolute inset-y-0 right-0 w-[60%] md:w-[70%] lg:w-[70%] opacity-50"
           style={{
-            backgroundImage: `url(/bg-new.png)`,
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "right center",
-            maskImage:
-              "linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.6) 20%, rgba(0,0,0,1) 60%)",
-            WebkitMaskImage:
-              "linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.6) 20%, rgba(0,0,0,1) 60%)",
+            background:
+              "linear-gradient(90deg, transparent 0%, rgba(180,135,85,0.15) 40%, rgba(41,55,148,0.35) 100%)",
           }}
         />
 
@@ -117,7 +112,7 @@ export default function GTCRegisterWithDesign() {
         {/* Bottom curve (foreground) */}
         <img
           className=" absolute hidden md:flex bottom-0 h-[300px] w-full"
-          src="/curve.png"
+          src="/curve.svg"
           alt=""
         />
       </section>

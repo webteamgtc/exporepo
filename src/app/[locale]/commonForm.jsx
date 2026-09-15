@@ -18,8 +18,9 @@ import { useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import { dialCodeByAlpha2 } from "../context/useDialCodes";
 
-// Set to false when ready to enable create-client, MT, email, and Zapier calls
-const SKIP_SUBMIT_APIS = true;
+// Set NEXT_PUBLIC_SKIP_SUBMIT_APIS=true in .env for local UI-only testing
+const SKIP_SUBMIT_APIS =
+    process.env.NEXT_PUBLIC_SKIP_SUBMIT_APIS === "true";
 
 // helper: returns true if today in Dubai is the 6th or 7th
 const isDubaiDaySixOrSeven = () => {
@@ -209,8 +210,9 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
     const token = params.get("token")
     const [showOtp, setShowOtp] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [storedOtp, setStoredOtp] = useState("");
-    const [isDisable, setIsDisable] = useState(true);
+    const [isOtpVerified, setIsOtpVerified] = useState(false);
+    const [verifyingOtp, setVerifyingOtp] = useState(false);
+    const [otpVerifyTarget, setOtpVerifyTarget] = useState(null);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -270,8 +272,6 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
         ).join("");
     };
 
-    console.log({ countryData })
-
     // formik setup
     const formik = useFormik({
         initialValues: {
@@ -307,10 +307,8 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
                     "matches-selected-country",
                     "Number doesn’t match selected country",
                     function (value) {
-                        const selectedCountryName = this.parent.country;
-                        if (!value || !selectedCountryName) return true;
-                        const selectedIso2 = getIso2ByCountryName(selectedCountryName);
-                        if (!selectedIso2) return true;
+                        const selectedIso2 = this.parent.country;
+                        if (!value || !selectedIso2) return true;
                         const pn = parsePhoneNumberFromString(value);
                         if (!pn) return false;
                         return pn.country === selectedIso2;
@@ -331,6 +329,11 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
         onSubmit: async (values) => {
             setLoading(true);
             try {
+                if (!SKIP_SUBMIT_APIS && !isOtpVerified) {
+                    toast.error(t("otpFail") || "Please verify your OTP first.");
+                    return;
+                }
+
                 if (SKIP_SUBMIT_APIS) {
                     toast.success(t("thankYou1"));
                     localStorage.setItem("user", JSON.stringify(values));
@@ -403,15 +406,15 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
                 }
 
                 // 3) continue your flow
-                await axios.post("/api/email", JSON.stringify({
+                await axios.post("/api/email", {
                     name: values?.nickname,
                     invest_password: mtData?.ret_msg?.investor_pwd,
                     password: mtData?.ret_msg?.master_pwd,
                     user: mtData?.ret_msg?.login,
                     email: values?.email,
-                    locale
-                }));
-                await axios.post(zapierUrl, JSON.stringify(values));
+                    locale,
+                });
+                await axios.post(zapierUrl, values);
                 toast.success(t("thankYou1"));
                 localStorage.setItem("user", JSON.stringify(values));
                 router.push(successPath);
@@ -441,15 +444,21 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
                 locale,
             })
             .then((res) => {
-                if (res?.data?.message) {
+                if (res?.data?.success) {
                     setShowOtp(true);
-                    setStoredOtp(res?.data?.message?.slice(4, -3));
+                    setOtpVerifyTarget({ type: "email", value: formik.values.email });
+                    setIsOtpVerified(false);
                     formik.setFieldValue("otp", "");
-                    setIsDisable(true);
                     toast.success(t("otpSent"));
                 } else {
-                    toast.error(res?.data?.message);
+                    toast.error(res?.data?.message || t("otpFail"));
                 }
+            })
+            .catch((error) => {
+                console.error(error);
+                toast.error(
+                    error?.response?.data?.message || error?.message || t("otpFail")
+                );
             })
             .finally(() => setOtpLoading(false));
     };
@@ -465,18 +474,18 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
         }
         setPhoneOtpLoading(true);
         axios
-            .post(`/api/otp-smtp`, {
+            .post(`/api/send-phone-otp`, {
                 phone: formik.values.phone,
                 first_name: formik.values.nickname,
                 locale,
                 channel: "whatsapp",
             })
             .then((res) => {
-                if (res?.data?.message) {
+                if (res?.data?.success) {
                     setShowOtp(true);
-                    setStoredOtp(res?.data?.message?.slice(4, -3));
+                    setOtpVerifyTarget({ type: "phone", value: formik.values.phone });
+                    setIsOtpVerified(false);
                     formik.setFieldValue("otp", "");
-                    setIsDisable(true);
                     toast.success(t("otpSent"));
                 } else {
                     toast.error(res?.data?.message || t("otpFail"));
@@ -484,19 +493,45 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
             })
             .catch((error) => {
                 console.error(error);
-                toast.error(t("otpFail"));
+                toast.error(
+                    error?.response?.data?.message || error?.message || t("otpFail")
+                );
             })
             .finally(() => setPhoneOtpLoading(false));
     };
 
-    // verify OTP
-    const verifyOtpCode = (otp) => {
-        if (otp === storedOtp) {
-            toast.success(t("otpSuccess"));
-            setShowOtp(false);
-            setIsDisable(false);
-        } else {
-            toast.error(t("otpFail"));
+    const verifyOtpCode = async (otp) => {
+        if (!otp || otp.length !== 6) return;
+        if (!otpVerifyTarget) {
+            toast.error(t("otpFail") || "Request an OTP first.");
+            return;
+        }
+
+        setVerifyingOtp(true);
+        try {
+            const payload =
+                otpVerifyTarget.type === "phone"
+                    ? { phone: otpVerifyTarget.value, otp }
+                    : { email: otpVerifyTarget.value, otp };
+
+            const res = await axios.post("/api/verify-otp", payload);
+
+            if (res?.data?.success) {
+                toast.success(t("otpSuccess"));
+                setShowOtp(false);
+                setIsOtpVerified(true);
+            } else {
+                toast.error(res?.data?.message || t("otpFail"));
+                setIsOtpVerified(false);
+            }
+        } catch (error) {
+            console.error("OTP verification error:", error);
+            toast.error(
+                error?.response?.data?.message || error?.message || t("otpFail")
+            );
+            setIsOtpVerified(false);
+        } finally {
+            setVerifyingOtp(false);
         }
     };
 
@@ -734,7 +769,10 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
     );
 
     return (
-        <form onSubmit={formik.handleSubmit} className={isWelcome50 ? "space-y-4" : "space-y-4"}>
+        <form
+            onSubmit={formik.handleSubmit}
+            className={isWelcome50 ? "w-full min-w-0 max-w-full space-y-4" : "space-y-4"}
+        >
             {nameFields}
 
             {isWelcome50 ? (
@@ -845,7 +883,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
             {/* Submit */}
             <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || verifyingOtp || (!SKIP_SUBMIT_APIS && !isOtpVerified)}
                 className={
                     isWelcome50
                         ? "w-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white h-12 rounded-lg font-bold cursor-pointer text-[15px] disabled:opacity-50 transition-colors shadow-[0_4px_14px_rgba(37,99,235,0.35)] mt-1"

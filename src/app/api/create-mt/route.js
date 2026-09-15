@@ -1,7 +1,7 @@
 // Creates MT account for an existing CRM client
 
 const BASE_URL = process.env.GTC_BASE_URL || "https://mygtcportal.com";
-const API_KEY = (process.env.GTC_API_KEY || "ga020bebb7c2896b60d53d6095410b2509f93d4gtc545dfca").trim();
+const API_KEY = (process.env.GTC_API_KEY || "").trim();
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

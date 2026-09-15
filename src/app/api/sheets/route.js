@@ -1,80 +1,13 @@
-// import { NextResponse } from "next/server";
-// import { getSheets } from "../../[locale]/lib/googleSheet";
-
-// const SPREADSHEET_ID = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
-// const DEFAULT_RANGE = process.env.GOOGLE_SHEETS_DEFAULT_RANGE || "Sheet1!A1:Z";
-
-// export async function GET(req) {
-//   try {
-//     const { searchParams } = new URL(req.url);
-//     const range = searchParams.get("range") || DEFAULT_RANGE;
-
-//     const sheets = getSheets();
-//     const { data } = await sheets.spreadsheets.values.get({
-//       spreadsheetId: SPREADSHEET_ID,
-//       range,
-//     });
-
-//     // data.values is string[][]
-//     return NextResponse.json({ values: data.values ?? [] });
-//   } catch (err) {
-//     return NextResponse.json(
-//       { error: err.message || "Read failed" },
-//       { status: 500 }
-//     );
-//   }
-// }
-
-// export async function POST(req) {
-//   try {
-//     const body = await req.json();
-//     /**
-//      * Expect:
-//      * {
-//      *   range?: "Sheet1!A:D",      // optional, defaults below
-//      *   values: [ ["A","B","C"], ... ] // array of rows
-//      * }
-//      */
-//     const range = body.range || "Sheet1"; // append can just use sheet name
-//     const values = body.values;
-
-//     if (!Array.isArray(values) || values.length === 0) {
-//       return NextResponse.json(
-//         { error: "Body must include non-empty 'values' (string[][])" },
-//         { status: 400 }
-//       );
-//     }
-
-//     const sheets = getSheets();
-
-//     const { data } = await sheets.spreadsheets.values.append({
-//       spreadsheetId: SPREADSHEET_ID,
-//       range, // e.g. "Sheet1"
-//       valueInputOption: "USER_ENTERED", // respects formats & formulas
-//       insertDataOption: "INSERT_ROWS",
-//       requestBody: { values },
-//     });
-
-//     return NextResponse.json({ result: data.updates });
-//   } catch (err) {
-//     return NextResponse.json(
-//       { error: err.message || "Write failed" },
-//       { status: 500 }
-//     );
-//   }
-// }
-
 export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 
-const GAS_URL =
-  "https://script.google.com/macros/s/AKfycbyRmt_6jRA-klpg2MXhAvmWBCGuFvqUza3uTCGjdAFzPmO39UFmhra5QmprXjEgMkYeWQ/exec"; // https://script.google.com/macros/s/XXX/exec
-const GAS_SECRET = "gtcfx_9f3c9dce7";
+const GAS_URL = process.env.GOOGLE_APPS_SCRIPT_URL || "";
+const GAS_SECRET = process.env.GOOGLE_APPS_SCRIPT_SECRET || "";
 
 async function safeJson(res) {
   const ct = res.headers.get("content-type") || "";
   if (!ct.includes("application/json")) {
-    const text = await res.text(); // helpful for debugging
+    const text = await res.text();
     throw new Error(
       `Expected JSON, got: ${ct}. Body: ${text.slice(0, 300)}...`
     );
@@ -82,31 +15,52 @@ async function safeJson(res) {
   return res.json();
 }
 
+function assertSheetsConfig() {
+  if (!GAS_URL || !GAS_SECRET) {
+    throw new Error("Google Sheets integration is not configured");
+  }
+}
+
 export async function GET(req) {
-  const url = new URL(req.url);
-  const tokenCheck = url.searchParams.get("tokenCheck");
-  if (!tokenCheck) {
+  try {
+    assertSheetsConfig();
+    const url = new URL(req.url);
+    const tokenCheck = url.searchParams.get("tokenCheck");
+    if (!tokenCheck) {
+      return NextResponse.json(
+        { ok: false, error: "Provide tokenCheck" },
+        { status: 400 }
+      );
+    }
+    const qs = `token=${encodeURIComponent(
+      GAS_SECRET
+    )}&tokenCheck=${encodeURIComponent(tokenCheck)}`;
+    const res = await fetch(`${GAS_URL}?${qs}`, { cache: "no-store" });
+    const data = await res.json();
+    return NextResponse.json(data, { status: data?.ok ? 200 : 500 });
+  } catch (err) {
     return NextResponse.json(
-      { ok: false, error: "Provide tokenCheck" },
-      { status: 400 }
+      { ok: false, error: err.message || "Read failed" },
+      { status: 500 }
     );
   }
-  const qs = `token=${encodeURIComponent(
-    GAS_SECRET
-  )}&tokenCheck=${encodeURIComponent(tokenCheck)}`;
-  const res = await fetch(`${GAS_URL}?${qs}`, { cache: "no-store" });
-  const data = await res.json();
-  return NextResponse.json(data, { status: data?.ok ? 200 : 500 });
 }
 
 export async function POST(req) {
-  const body = await req.json(); // { action, range?, values }
-  const res = await fetch(GAS_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    // token must be in body for doPost
-    body: JSON.stringify({ ...body, token: GAS_SECRET }),
-  });
-  const data = await safeJson(res);
-  return NextResponse.json(data, { status: data?.ok ? 200 : 500 });
+  try {
+    assertSheetsConfig();
+    const body = await req.json();
+    const res = await fetch(GAS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...body, token: GAS_SECRET }),
+    });
+    const data = await safeJson(res);
+    return NextResponse.json(data, { status: data?.ok ? 200 : 500 });
+  } catch (err) {
+    return NextResponse.json(
+      { ok: false, error: err.message || "Write failed" },
+      { status: 500 }
+    );
+  }
 }
