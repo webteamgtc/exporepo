@@ -5,7 +5,6 @@ import ConfirmationThankYou from "./components/thankYouConfirmation";
 import HelpSection from "./components/helpSection";
 import Meta from "../components/Meta";
 import { useTranslations } from "next-intl";
-import Header from "../header";
 
 const ThankYouPage = () => {
     const router = useRouter();
