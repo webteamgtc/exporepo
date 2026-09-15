@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import CommonMainForm from "./commonForm";
 import Meta from "./components/Meta";
+import Footer from "./components/Footer";
 
 
 const goldTextGradient = {
@@ -290,6 +291,8 @@ export default function WelcomeBonusPage() {
             </div>
           </div>
         </section>
+
+        <Footer />
       </div>
     </>
   );
