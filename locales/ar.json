@@ -100,5 +100,95 @@
         "team": "فريق GTC"
       }
     }
+  },
+
+  "newPage": {
+    "meta": {
+      "title": "احصل على بونص تداول 50 دولار | GTC",
+      "description": "افتح حساب GTC Standard وابدأ التداول مع بونص 50 دولار. بدون إيداع."
+    },
+    "hero": {
+      "eyebrow": "رحلتك في التداول تبدأ من هنا",
+      "headline1": "بداية قوية.",
+      "headline2": "عالم من الفرص.",
+      "bonusAmount": "$50",
+      "bonusLabel1": "USD",
+      "bonusLabel2": "TRADING",
+      "bonusLabel3": "BONUS",
+      "noDeposit": "بدون إيداع.",
+      "description": "افتح حساب GTC Standard وانطلق بخطوتك التالية مع بونص تداول بقيمة 50 دولار.",
+      "termsLink": "تطبق شروط الأهلية والبونص.",
+      "step1": "التسجيل",
+      "step2": "التفعيل",
+      "step3": "ابدأ التداول",
+      "registerCta": "سجّل الآن"
+    },
+    "features": {
+      "eyebrow": "طريقة أفضل للبدء",
+      "title": "بداية صغيرة. إمكانيات حقيقية.",
+      "item1": {
+        "title": "أموال حقيقية. أسواق حقيقية.",
+        "desc": "استخدم 50 دولار للتداول في الأسواق الحقيقية وليس محاكاة تجريبية."
+      },
+      "item2": {
+        "title": "ابدأ بدون إيداع.",
+        "desc": "اختبر الاستراتيجيات أو استكشف منصة التداول. أموالك تبقى آمنة أثناء استخدام بونص 50 دولار."
+      },
+      "item3": {
+        "title": "اعرف خطوتك التالية.",
+        "desc": "سجّل، فعّل حسابك، ثم تداول. راجع شروط البونص والسحب قبل البدء."
+      }
+    },
+    "form": {
+      "badge": "بونص ترحيب 50 دولار",
+      "title": "سجّل الآن",
+      "subtitle": "أنشئ حسابك للحصول على بونص التداول 50 دولار.",
+      "firstName": "الاسم الأول",
+      "lastName": "اسم العائلة",
+      "email": "البريد الإلكتروني",
+      "phone": "رقم الجوال",
+      "country": "بلد الإقامة",
+      "verificationCode": "رمز التحقق",
+      "otp": "تم إرسال OTP إلى البريد الإلكتروني",
+      "getCode": "إرسال الرمز",
+      "sending": "جارٍ الإرسال...",
+      "code": "رمز الدعوة (اختياري)",
+      "submitting": "جارٍ الإرسال...",
+      "btnText": "احصل على بونص 50 دولار",
+      "password": "كلمة المرور",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "placeholders": {
+        "firstName": "مثال: أحمد",
+        "lastName": "مثال: محمد",
+        "email": "you@example.com",
+        "phone": "50 123 4567",
+        "password": "8 أحرف على الأقل",
+        "confirmPassword": "أعد إدخال كلمة المرور",
+        "invitation": "أدخل رمز الدعوة"
+      },
+      "termsPrefix": "لقد قرأت وأوافق على",
+      "termsAndConditions": "الشروط والأحكام",
+      "termsBonus": "شروط البونص",
+      "termsClient": "اتفاقية العميل",
+      "otpSuccess": "تم التحقق من OTP بنجاح!",
+      "otpFail": "فشل التحقق من OTP، حاول مرة أخرى!",
+      "thankYou1": "تم إرسال النموذج بنجاح!",
+      "otpSent": "تم إرسال OTP بنجاح!",
+      "errors": {
+        "firstNameRequired": "الاسم الأول مطلوب",
+        "lastNameRequired": "اسم العائلة مطلوب",
+        "emailInvalid": "البريد الإلكتروني غير صالح",
+        "emailRequired": "البريد الإلكتروني مطلوب",
+        "phoneRequired": "رقم الهاتف مطلوب",
+        "countryRequired": "البلد مطلوب",
+        "otpLength": "يجب أن يكون OTP 6 أرقام",
+        "otpRequired": "OTP مطلوب",
+        "passwordRequired": "كلمة المرور مطلوبة",
+        "confirmPasswordRequired": "تأكيد كلمة المرور مطلوب",
+        "passwordMatch": "كلمات المرور غير متطابقة",
+        "phoneInvalid": "رقم الهاتف غير صالح",
+        "termsRequired": "يرجى قبول الشروط والأحكام"
+      }
+    }
   }
 }

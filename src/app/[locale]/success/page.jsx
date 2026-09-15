@@ -24,7 +24,9 @@ const ThankYouPage = () => {
         }
 
         return () => {
-            localStorage.removeItem("user");
+            if (typeof window !== "undefined" && typeof localStorage?.removeItem === "function") {
+                localStorage.removeItem("user");
+            }
         };
     }, []);
 

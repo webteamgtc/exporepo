@@ -101,5 +101,95 @@
         "team": "The GTC Team"
       }
     }
+  },
+
+  "newPage": {
+    "meta": {
+      "title": "Get $50 USD Trading Bonus | GTC",
+      "description": "Open a GTC Standard account and start trading with a $50 trading bonus. No deposit needed."
+    },
+    "hero": {
+      "eyebrow": "YOUR TRADING JOURNEY STARTS HERE",
+      "headline1": "A head start.",
+      "headline2": "A world of opportunity.",
+      "bonusAmount": "$50",
+      "bonusLabel1": "USD",
+      "bonusLabel2": "TRADING",
+      "bonusLabel3": "BONUS",
+      "noDeposit": "No deposit needed.",
+      "description": "Open a GTC Standard account and put your next move into motion with a $50 trading bonus.",
+      "termsLink": "Eligibility and bonus terms apply.",
+      "step1": "Register",
+      "step2": "Activate",
+      "step3": "Start trading",
+      "registerCta": "Register now"
+    },
+    "features": {
+      "eyebrow": "A BETTER WAY TO BEGIN",
+      "title": "Small start. Real possibilities.",
+      "item1": {
+        "title": "Real funds. Real markets.",
+        "desc": "Use your 50 USD to trade real markets & not demo simulations. Trade the real financial markets."
+      },
+      "item2": {
+        "title": "Start without a deposit.",
+        "desc": "Test strategies or explore our trading platform. Your funds stay untouched while using your 50 USD tradable bonus."
+      },
+      "item3": {
+        "title": "Know your next step.",
+        "desc": "Register, activate your account, then trade. Review the bonus and withdrawal terms before you begin."
+      }
+    },
+    "form": {
+      "badge": "$50 WELCOME BONUS",
+      "title": "Register now",
+      "subtitle": "Create your account to claim your $50 trading bonus.",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "email": "Email address",
+      "phone": "Mobile number",
+      "country": "Country of residence",
+      "verificationCode": "Verification code",
+      "otp": "OTP has been sent to given Email",
+      "getCode": "Send code",
+      "sending": "Sending...",
+      "code": "Invitation code (optional)",
+      "submitting": "Submitting...",
+      "btnText": "Get my $50 bonus",
+      "password": "Password",
+      "confirmPassword": "Confirm password",
+      "placeholders": {
+        "firstName": "e.g. Alex",
+        "lastName": "e.g. Morgan",
+        "email": "you@example.com",
+        "phone": "50 123 4567",
+        "password": "At least 8 characters",
+        "confirmPassword": "Enter your password again",
+        "invitation": "Enter invitation code"
+      },
+      "termsPrefix": "I have read and agree to the",
+      "termsAndConditions": "Terms & Conditions",
+      "termsBonus": "Bonus Terms",
+      "termsClient": "Client Agreement",
+      "otpSuccess": "Otp Verified Successfully!",
+      "otpFail": "Otp Verification Failed try again!",
+      "thankYou1": "Form Submitted Successfully!",
+      "otpSent": "Otp sent successfully!",
+      "errors": {
+        "firstNameRequired": "First name is required",
+        "lastNameRequired": "Last name is required",
+        "emailInvalid": "Invalid email address",
+        "emailRequired": "Email is required",
+        "phoneRequired": "Phone number is required",
+        "countryRequired": "Country is required",
+        "otpLength": "OTP must be 6 digits",
+        "otpRequired": "OTP is required",
+        "passwordRequired": "Password is required",
+        "confirmPasswordRequired": "Confirm password is required",
+        "passwordMatch": "Password not match",
+        "phoneInvalid": "Phone number is not valid",
+        "termsRequired": "Please accept the terms and conditions"
+      }
+    }
   }
 }
