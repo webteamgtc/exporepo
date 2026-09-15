@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { mailgunClient, MAILGUN_DOMAIN, MAILGUN_FROM } from "../../config/nodemailer";
+import {
+  getMailgunClient,
+  MAILGUN_DOMAIN,
+  MAILGUN_FROM,
+} from "../../config/nodemailer";
 import { generateArabic, generateEnglis } from "./template";
 
 const generateEmailContent = (data) => {
@@ -10,12 +14,16 @@ const generateEmailContent = (data) => {
 
 export async function POST(req) {
   const reqBody = await req.json();
-  const mailOption = {
-    from: '"Get 5,000 USC to Trade | GTC" <portal@mx4.gtcmail.com>',
-    to: reqBody?.email,
-  };
+
+  if (!MAILGUN_DOMAIN || !MAILGUN_FROM) {
+    return NextResponse.json(
+      { message: "Mailgun is not configured." },
+      { status: 500 }
+    );
+  }
+
   try {
-    const res = await mailgunClient.messages.create(MAILGUN_DOMAIN, {
+    await getMailgunClient().messages.create(MAILGUN_DOMAIN, {
       from: MAILGUN_FROM,
       to: reqBody?.email,
       subject:
@@ -30,7 +38,7 @@ export async function POST(req) {
       { status: 200 }
     );
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return NextResponse.json({ message: error.message }, { status: 400 });
   }
 }

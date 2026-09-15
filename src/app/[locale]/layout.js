@@ -10,7 +10,7 @@ export default async function LocaleLayout({ children, params }) {
     notFound();
   }
 
-  const isArabicOrKurdish = locale === "ar" || locale === "ku";
+  const isArabicOrKurdish = locale === "ar";
 
   return (
     <html lang={locale} dir={isArabicOrKurdish ? "rtl" : "ltr"}>
