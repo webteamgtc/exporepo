@@ -84,13 +84,13 @@ const featureItems = [
 
 const StepItem = ({ number, label, active }) => (
   <div className="flex items-center gap-2">
-    <span className="text-[13px] font-semibold tracking-wide bg-clip-text text-transparent"
+    <span className="text-[13px] 2xl:text-[18px] font-semibold tracking-wide bg-clip-text text-transparent"
       style={goldTextGradient}
     >
       {number}
     </span>
     <span
-      className={`text-[13px] font-medium bg-clip-text text-transparent ${active
+      className={`text-[13px] 2xl:text-[18px] font-medium bg-clip-text text-transparent ${active
           ? " border-b border-[#c9a063] pb-0.5"
           : ""
         }`}
@@ -119,7 +119,7 @@ export default function WelcomeBonusPage() {
   const t = useTranslations("newPage");
 
   const formCard = (
-    <div className="bg-white rounded-2xl lg:rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.18)] lg:shadow-[0_24px_60px_rgba(0,0,0,0.35)] p-6 sm:p-7 lg:p-9">
+    <div className="box-border w-full max-w-full min-w-0 overflow-hidden bg-white rounded-2xl lg:rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.18)] lg:shadow-[0_24px_60px_rgba(0,0,0,0.35)] p-6 sm:p-7 lg:p-9">
       <p className="text-[11px] font-bold tracking-[0.12em] text-[#b98751] uppercase mb-2">
         {t("form.badge")}
       </p>
@@ -143,7 +143,7 @@ export default function WelcomeBonusPage() {
 
       <div className="min-h-screen bg-[#060c1a] text-white">
         {/* Hero */}
-        <section className="relative overflow-hidden">
+        <section className="relative overflow-x-hidden">
           <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{
@@ -159,12 +159,11 @@ export default function WelcomeBonusPage() {
             />
           </div>
 
-          <div className="relative z-10 max-w-6xl mx-auto px-4 pt-8 pb-8 lg:py-20">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-2 items-start">
-              {/* Left content */}
-              <div className="max-w-xl">
-                {/* Logos */}
-                <div className="flex items-center gap-3 sm:gap-5 mb-6 lg:mb-10">
+          <div className="relative z-10 max-w-6xl mx-auto px-4 pt-8 pb-8 lg:py-16">
+            <div className="grid min-w-0 grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-8 items-stretch">
+              {/* Left content — logos top, hero copy vertically centered vs form */}
+              <div className="flex max-w-xl flex-col lg:min-h-full">
+                <div className="flex shrink-0 items-center gap-3 sm:gap-5">
                   <Image
                     src="/logo-gtc.svg"
                     width={179}
@@ -173,23 +172,24 @@ export default function WelcomeBonusPage() {
                     priority
                     className="h-[40px] sm:h-[56px] lg:h-[65px] w-auto"
                   />
-                  <div className="h-8 sm:h-12 w-px bg-white/35 shrink-0" />
-                  <div className="h-[40px] w-[40px] sm:h-[62px] sm:w-[62px] rounded-full bg-white flex items-center justify-center shrink-0 overflow-hidden">
+                  <div className="h-10 sm:h-14 lg:h-16 w-px bg-white/35 shrink-0" />
+                  <div className="flex h-[52px] w-[52px] sm:h-[72px] sm:w-[72px] lg:h-[80px] lg:w-[80px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-white">
                     <Image
                       src="/logo.png"
-                      width={52}
-                      height={52}
-                      alt="The Trading Axioms"
-                      className="h-[38px] w-[38px] sm:h-[46px] sm:w-[46px] object-contain"
+                      width={72}
+                      height={72}
+                      alt="Forex Expo Dubai"
+                      className="h-[44px] w-[44px] sm:h-[58px] sm:w-[58px] lg:h-[64px] lg:w-[64px] object-contain"
                     />
                   </div>
                 </div>
 
-                <p className="text-[10px] sm:text-[11px] font-medium tracking-[0.18em] text-white uppercase mb-3 sm:mb-4">
+                <div className="mt-10 flex min-h-[40vh] flex-1 flex-col justify-center sm:mt-12 sm:min-h-[36vh] lg:mt-14 lg:min-h-0 lg:py-6">
+                <p className="text-[10px] sm:text-[14px] 2xl:text-[16px] font-medium tracking-[0.18em] text-white uppercase mb-3 sm:mb-4">
                   {t("hero.eyebrow")}
                 </p>
 
-                <h1 className="text-[28px] sm:text-[42px] font-medium leading-[1.08] text-white mb-1">
+                <h1 className="text-[24px] sm:text-[42px] 2xl:text-[45px] capitalize font-medium leading-[1.09] text-white mb-1">
                   {t("hero.headline1")}
                   <br />
                   {t("hero.headline2")}
@@ -198,26 +198,26 @@ export default function WelcomeBonusPage() {
                 <div className="flex items-center gap-2.5 sm:gap-4 mb-4 sm:mb-5">
                   <div className="flex items-start leading-none">
                     <span
-                      className="text-[28px] sm:text-[40px] font-semibold mt-2 sm:mt-4 bg-clip-text text-transparent"
+                      className="text-[28px] sm:text-[40px] 2xl:text-[60px] font-semibold mt-2 sm:mt-4 bg-clip-text text-transparent"
                       style={goldTextGradient}
                     >
                       $
                     </span>
                     <span
-                      className="text-[64px] sm:text-[88px] lg:text-[110px] font-semibold leading-none tracking-tight bg-clip-text text-transparent"
+                      className="text-[64px] sm:text-[88px] lg:text-[110px] 2xl:text-[160px] font-semibold leading-none tracking-tight bg-clip-text text-transparent"
                       style={goldTextGradient}
                     >
                       50
                     </span>
                   </div>
                   <div className="pb-1 sm:pb-3 space-y-0.5">
-                    <p className="text-[10px] sm:text-[12px] font-semibold tracking-[0.14em] uppercase bg-clip-text leading-tight text-transparent" style={goldTextGradient}>
+                    <p className="text-[10px] sm:text-[12px] 2xl:text-[16px] font-semibold tracking-[0.14em] uppercase bg-clip-text leading-tight text-transparent" style={goldTextGradient}>
                       {t("hero.bonusLabel1")}
                     </p>
-                    <p className="text-[10px] sm:text-[12px] font-semibold tracking-[0.14em] uppercase bg-clip-text leading-tight text-transparent" style={goldTextGradient}>
+                    <p className="text-[10px] sm:text-[12px] 2xl:text-[16px] font-semibold tracking-[0.14em] uppercase bg-clip-text leading-tight text-transparent" style={goldTextGradient}>
                       {t("hero.bonusLabel2")}
                     </p>
-                    <p className="text-[10px] sm:text-[12px] font-semibold tracking-[0.14em] uppercase bg-clip-text leading-tight text-transparent" style={goldTextGradient}>
+                    <p className="text-[10px] sm:text-[12px] 2xl:text-[16px] font-semibold tracking-[0.14em] uppercase bg-clip-text leading-tight text-transparent" style={goldTextGradient}>
                       {t("hero.bonusLabel3")}
                     </p>
                   </div>
@@ -230,13 +230,13 @@ export default function WelcomeBonusPage() {
                   {t("hero.noDeposit")}
                 </p>
 
-                <p className="text-[13px] sm:text-[15px] text-white/90 leading-relaxed max-w-md mb-1 sm:mb-3">
+                <p className="text-[13px] sm:text-[15px] 2xl:text-[18px] text-white/90 leading-relaxed max-w-md mb-1 sm:mb-3">
                   {t("hero.description")}{" "}
                   <a
                     href="https://gtcfx-bucket.s3.ap-southeast-1.amazonaws.com/pdf-files/Lucky+Terms+And+Conditions.pdf"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[13px] sm:text-[15px] text-white underline underline-offset-2 hover:text-white/75"
+                    className="text-[13px] sm:text-[15px] 2xl:text-[18px] text-white underline underline-offset-2 hover:text-white/75"
                   >
                     {t("hero.termsLink")}
                   </a>
@@ -252,11 +252,12 @@ export default function WelcomeBonusPage() {
                   <span className="sm:hidden text-[#d2ad64] text-[12px]">—</span>
                   <StepItem number="03" label={t("hero.step3")} active={false} />
                 </div>
+                </div>
               </div>
 
-              {/* Form — inline on mobile, side panel on desktop */}
-              <div className="w-full max-w-lg mx-auto lg:mx-0 lg:ml-auto">
-                {formCard}
+              {/* Form — equal horizontal inset on mobile; right-aligned on desktop */}
+              <div className="min-w-0 w-full max-w-lg mx-auto px-0 lg:px-0 lg:ml-auto lg:mr-0 lg:flex lg:items-center">
+                <div className="w-full min-w-0">{formCard}</div>
               </div>
             </div>
           </div>
@@ -268,11 +269,11 @@ export default function WelcomeBonusPage() {
             <p className="text-[11px] font-medium tracking-[0.14em] text-[#0A0D12] uppercase mb-1">
               {t("features.eyebrow")}
             </p>
-            <h2 className="text-[26px] sm:text-[32px] font-semibold text-[#0A0D12] mb-6 sm:mb-8 leading-[1.15]">
+            <h2 className="text-[18px] sm:text-[32px] font-semibold text-[#0A0D12] mb-6 sm:mb-8 leading-[1.15]">
               {t("features.title")}
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 lg:gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-4 lg:gap-4">
               {featureItems.map(({ icon, key }) => (
                 <div key={key} className="flex items-start gap-3">
                   {icon}
@@ -280,7 +281,7 @@ export default function WelcomeBonusPage() {
                     <h3 className="text-[15px] sm:text-[16px] font-bold text-[#0A0D12] mb-1 leading-snug">
                       {t(`features.item${key}.title`)}
                     </h3>
-                    <p className="text-[13px] sm:text-[14px] text-[#333333] leading-[1.55]">
+                    <p className="text-[13px] sm:text-[13px] text-[#333333] leading-[1.55]">
                       {t(`features.item${key}.desc`)}
                     </p>
                   </div>
