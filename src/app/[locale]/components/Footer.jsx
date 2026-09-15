@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 
+
 export default function Footer() {
   const t = useTranslations("footer");
   const locale = useLocale();
