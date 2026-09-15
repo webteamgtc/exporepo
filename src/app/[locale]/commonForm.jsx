@@ -2,8 +2,9 @@
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
-import { useEffect, useState } from "react";
-import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import PhoneInput, { getCountryCallingCode, isValidPhoneNumber } from "react-phone-number-input";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import "react-phone-number-input/style.css";
 import OtpInput from "react-otp-input";
@@ -16,6 +17,9 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import { dialCodeByAlpha2 } from "../context/useDialCodes";
+
+// Set to false when ready to enable create-client, MT, email, and Zapier calls
+const SKIP_SUBMIT_APIS = true;
 
 // helper: returns true if today in Dubai is the 6th or 7th
 const isDubaiDaySixOrSeven = () => {
@@ -73,8 +77,131 @@ const selectStyles = {
     }),
 };
 
+const Welcome50CountrySelect = ({ value, onChange, options, disabled, readOnly }) => {
+    const [open, setOpen] = useState(false);
+    const [menuStyle, setMenuStyle] = useState({});
+    const triggerRef = useRef(null);
+    const dialCode = value ? getCountryCallingCode(value) : getCountryCallingCode("AE");
+    const countryOptions = options.filter((option) => !option.divider && option.value);
 
-const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
+    useEffect(() => {
+        if (!open) return;
+
+        const updatePosition = () => {
+            const rect = triggerRef.current?.getBoundingClientRect();
+            if (!rect) return;
+
+            setMenuStyle({
+                position: "fixed",
+                top: rect.bottom + 4,
+                left: rect.left,
+                width: Math.max(rect.width, 240),
+                zIndex: 9999,
+            });
+        };
+
+        updatePosition();
+        window.addEventListener("scroll", updatePosition, true);
+        window.addEventListener("resize", updatePosition);
+
+        return () => {
+            window.removeEventListener("scroll", updatePosition, true);
+            window.removeEventListener("resize", updatePosition);
+        };
+    }, [open]);
+
+    useEffect(() => {
+        if (!open) return;
+
+        const handleClickOutside = (event) => {
+            const menu = document.getElementById("welcome50-country-menu");
+            if (
+                triggerRef.current?.contains(event.target) ||
+                menu?.contains(event.target)
+            ) {
+                return;
+            }
+            setOpen(false);
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [open]);
+
+    const menu =
+        open && typeof document !== "undefined"
+            ? createPortal(
+                  <ul
+                      id="welcome50-country-menu"
+                      role="listbox"
+                      aria-label="Phone number country"
+                      style={menuStyle}
+                      className="max-h-52 overflow-y-auto rounded-lg border border-[#e2e8f0] bg-white py-1 shadow-lg"
+                  >
+                      {countryOptions.map(({ value: countryValue, label }) => (
+                          <li key={countryValue}>
+                              <button
+                                  type="button"
+                                  role="option"
+                                  aria-selected={countryValue === value}
+                                  onClick={() => {
+                                      onChange(countryValue);
+                                      setOpen(false);
+                                  }}
+                                  className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm text-[#111827] hover:bg-[#f1f5f9] ${
+                                      countryValue === value ? "bg-[#eff6ff] font-semibold" : ""
+                                  }`}
+                              >
+                                  <span>{label}</span>
+                                  <span className="text-[#64748b]">+{getCountryCallingCode(countryValue)}</span>
+                              </button>
+                          </li>
+                      ))}
+                  </ul>,
+                  document.body
+              )
+            : null;
+
+    return (
+        <div className="PhoneInputCountry" ref={triggerRef}>
+            <button
+                type="button"
+                disabled={disabled || readOnly}
+                onClick={() => {
+                    if (!disabled && !readOnly) {
+                        setOpen((prev) => !prev);
+                    }
+                }}
+                className="flex h-full w-full items-center gap-1.5 bg-transparent px-3 py-0 text-left disabled:cursor-not-allowed"
+                aria-haspopup="listbox"
+                aria-expanded={open}
+                aria-label="Phone number country"
+            >
+                <span className="welcome50-dial-code">+{dialCode}</span>
+                <div className="PhoneInputCountrySelectArrow" aria-hidden="true" />
+            </button>
+            {menu}
+        </div>
+    );
+};
+
+const welcome50SelectStyles = {
+    ...selectStyles,
+    control: (base, state) => ({
+        ...base,
+        backgroundColor: '#fff',
+        color: '#111827',
+        borderColor: state.isFocused ? '#2563eb' : '#e2e8f0',
+        boxShadow: state.isFocused ? '0 0 0 1px rgba(37, 99, 235, 0.2)' : 'none',
+        ':hover': { borderColor: state.isFocused ? '#2563eb' : '#cbd5e1' },
+        minHeight: 44,
+        borderRadius: 8,
+    }),
+    placeholder: (base) => ({ ...base, color: '#9ca3af' }),
+};
+
+
+const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "default" }) => {
     const { countryData } = useLocationDetail();
     const [otpLoading, setOtpLoading] = useState(false);
     const [phoneOtpLoading, setPhoneOtpLoading] = useState(false);
@@ -88,7 +215,8 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const router = useRouter();
-    const t = useTranslations("home.form");
+    const isWelcome50 = variant === "welcome50";
+    const t = useTranslations(isWelcome50 ? "newPage.form" : "home.form");
     const locale = useLocale();
 
     // prepare country options
@@ -201,9 +329,17 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
             terms: Yup.bool().oneOf([true], t("errors.termsRequired")),
         }),
         onSubmit: async (values) => {
-            const areaCode = dialCodeByAlpha2[values?.country]
-            setLoading(true)
+            setLoading(true);
             try {
+                if (SKIP_SUBMIT_APIS) {
+                    toast.success(t("thankYou1"));
+                    localStorage.setItem("user", JSON.stringify(values));
+                    router.push(successPath);
+                    formik.resetForm();
+                    return;
+                }
+
+                const areaCode = dialCodeByAlpha2[values?.country]
                 // 1) create CRM client
                 const res = await fetch("/api/create-client", {
                     method: "POST",
@@ -364,247 +500,342 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
         }
     };
 
-    const color = isMobile ? "text-[#fff]" : "text-[#666684]"
+    const color = isMobile ? "text-[#fff]" : "text-[#666684]";
+    const labelClass = isWelcome50
+        ? "text-[13px] font-bold text-[#111827] mb-1.5 block"
+        : `text-sm ${color} mb-1`;
+    const inputClass = (hasError) =>
+        isWelcome50
+            ? `w-full h-11 border rounded-lg px-3 text-sm text-[#111827] placeholder:text-[#9ca3af] bg-white focus:outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/20 ${
+                  hasError ? "border-red-500" : "border-[#e2e8f0]"
+              }`
+            : `w-full border px-3 py-2 rounded-md ${isMobile ? "bg-[#33335b]" : ""} ${
+                  hasError ? "border-red-500" : "border-gray-300"
+              }`;
+    const codeBtnClass = isWelcome50
+        ? `absolute top-1/2 -translate-y-1/2 ${locale == "ar" ? "left-2" : "right-2"} bg-[#f1f5f9] hover:bg-[#e2e8f0] text-[#475569] px-3 py-1.5 rounded-md text-xs font-semibold transition-colors disabled:opacity-60`
+        : `absolute min-h-[41px] top-0 ${locale == "ar" ? "left-0" : "right-0"} bg-[#666684] text-white px-3 py-1 rounded-md text-xs`;
+    const phoneCodeBtnClass = isWelcome50
+        ? "min-h-[41px] text-[#0066ff] px-4 py-2 text-sm font-medium disabled:opacity-70 whitespace-nowrap"
+        : "min-h-[41px] bg-[#666684] text-white px-4 py-2 rounded-md text-xs sm:text-sm disabled:opacity-70";
+    const placeholder = (key) => (isWelcome50 ? t(`placeholders.${key}`) : t(key));
+    const showOtpSection = isWelcome50 || showOtp;
 
-    return (
-        <form onSubmit={formik.handleSubmit} className="space-y-4">
-            {/* First + Last Name */}
-            <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                    <label className={`text-sm ${color} mb-1`}>{t("firstName")}</label>
-                    <input
-                        type="text"
-                        placeholder={t("firstName")}
-                        {...formik.getFieldProps("nickname")}
-                        className={`w-full border px-3 py-2 ${isMobile ? "bg-[#33335b]" : ""} rounded-md ${formik.touched.nickname && formik.errors.nickname
-                            ? "border-red-500"
-                            : "border-gray-300"
-                            }`}
-                    />
-                    {formik.touched.nickname && formik.errors.nickname && (
-                        <p className="text-xs text-red-500">{formik.errors.nickname}</p>
-                    )}
-                </div>
-                <div>
-                    <label className={`text-sm ${color} mb-1`}>{t("lastName")}</label>
-                    <input
-                        type="text"
-                        placeholder={t("lastName")}
-                        {...formik.getFieldProps("last_name")}
-                        className={`w-full border px-3 py-2 rounded-md ${isMobile ? "bg-[#33335b]" : ""} ${formik.touched.last_name && formik.errors.last_name
-                            ? "border-red-500"
-                            : "border-gray-300"
-                            }`}
-                    />
-                    {formik.touched.last_name && formik.errors.last_name && (
-                        <p className="text-xs text-red-500">{formik.errors.last_name}</p>
-                    )}
-                </div>
-            </div>
-
-            {/* Email + OTP */}
+    const nameFields = (
+        <div className={`grid grid-cols-2 ${isWelcome50 ? "gap-3" : "sm:grid-cols-2 gap-4"}`}>
             <div>
-                <label className={`text-sm ${color} mb-1`}>{t("email")}</label>
-                <div className="relative">
-                    <input
-                        type="email"
-                        placeholder={t("email")}
-                        {...formik.getFieldProps("email")}
-                        className={`w-full border px-3 py-2 rounded-md ${isMobile ? "bg-[#33335b]" : ""} ${formik.touched.email && formik.errors.email
-                            ? "border-red-500"
-                            : "border-gray-300"
-                            }`}
-                    />
-                    <button
-                        type="button"
-                        onClick={sendVerificationCode}
-                        className={`absolute min-h-[41px] top-0 ${locale == "ar" ? "left-0" : "right-0"} bg-[#666684] text-white px-3 py-1 rounded-md text-xs`}
-                    >
-                        {otpLoading ? t("sending") : t("getCode")}
-                    </button>
-                </div>
-                {formik.touched.email && formik.errors.email && (
-                    <p className="text-xs text-red-500">{formik.errors.email}</p>
+                <label className={labelClass}>{t("firstName")}</label>
+                <input
+                    type="text"
+                    placeholder={placeholder("firstName")}
+                    {...formik.getFieldProps("nickname")}
+                    className={inputClass(formik.touched.nickname && formik.errors.nickname)}
+                />
+                {formik.touched.nickname && formik.errors.nickname && (
+                    <p className="text-xs text-red-500 mt-1">{formik.errors.nickname}</p>
                 )}
             </div>
-
-            {showOtp && (
-                <div>
-                    <p className="text-sm mb-2">{t("otp")}</p>
-                    <div className=" flex gap-3 items-center">
-                        <OtpInput
-                            value={formik.values.otp}
-                            onChange={(otp) => {
-                                formik.setFieldValue("otp", otp)
-                                if (otp?.length == 6) {
-                                    verifyOtpCode(otp)
-                                }
-
-                            }}
-                            numInputs={6}
-                            containerStyle={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                gap: "3px"
-                            }}
-                            isInputNum
-                            renderInput={(props) => (
-                                <input
-                                    {...props}
-                                    type="tel" // Triggers number pad
-                                    inputMode="numeric" // Helps mobile keyboard detect numeric input
-                                    pattern="[0-9]*" // Optional: enforce numeric
-                                />
-                            )}
-
-                            inputStyle={{
-                                fontSize: "16px", // ✅ critical to stop iOS zoom
-                                borderRadius: "5px",
-                                paddingBottom: "10px",
-                                paddingTop: "10px",
-                                width: "15%",
-                                backgroundColor: "#fff",
-                                color: "#666684",
-                                fontWeight: "700",
-                                outlineColor: "#666684",
-                                border:
-                                    formik.touched.otp && formik.errors.otp
-                                        ? "1px solid red"
-                                        : "1px solid #666684",
-                            }}
-                        />
-                        {/* <button
-                            type="button"
-                            onClick={verifyOtpCode}
-                            className=" bg-[#666684] text-white px-3 py-1 rounded-md text-sm"
-                        >
-                            {t("verifyCode")}
-                        </button> */}
-                    </div>
-                </div>
-            )}
-
-            {/* Phone */}
             <div>
-                <label className={`text-sm ${color} mb-1`}>{t("phone")}</label>
-                <div className="flex flex-col sm:flex-row gap-2">
-                    <PhoneInput
-                        international
-                        defaultCountry={countryData?.country_code || countryData?.country || "AE"}
-                        value={formik.values.phone}
-                        onChange={(phone) => formik.setFieldValue("phone", phone)}
-                        className={`flex-1 border px-3 py-2 ${isMobile ? "bg-[#33335b]" : ""} rounded-md ${formik.touched.phone && formik.errors.phone
-                            ? "border-red-500"
-                            : "border-gray-300"
-                            }`}
-                    />
+                <label className={labelClass}>{t("lastName")}</label>
+                <input
+                    type="text"
+                    placeholder={placeholder("lastName")}
+                    {...formik.getFieldProps("last_name")}
+                    className={inputClass(formik.touched.last_name && formik.errors.last_name)}
+                />
+                {formik.touched.last_name && formik.errors.last_name && (
+                    <p className="text-xs text-red-500 mt-1">{formik.errors.last_name}</p>
+                )}
+            </div>
+        </div>
+    );
+
+    const phoneField = (
+        <div>
+            <label className={labelClass}>{t("phone")}</label>
+            <div className={`${isWelcome50 ? "w-full" : "flex flex-col sm:flex-row gap-2"}`}>
+                <PhoneInput
+                    international={!isWelcome50}
+                    countryCallingCodeEditable={false}
+                    addInternationalOption={false}
+                    defaultCountry={countryData?.country_code || countryData?.country || "AE"}
+                    value={formik.values.phone}
+                    onChange={(phone) => formik.setFieldValue("phone", phone)}
+                    onCountryChange={(country) => {
+                        if (isWelcome50 && country) {
+                            formik.setFieldValue("country", country);
+                        }
+                    }}
+                    placeholder={isWelcome50 ? placeholder("phone") : undefined}
+                    countrySelectComponent={isWelcome50 ? Welcome50CountrySelect : undefined}
+                    className={
+                        isWelcome50
+                            ? `PhoneInput welcome50-phone w-full ${formik.touched.phone && formik.errors.phone ? "phone-error" : ""}`
+                            : `flex-1 border px-3 py-2 ${isMobile ? "bg-[#33335b]" : ""} rounded-md ${
+                                  formik.touched.phone && formik.errors.phone
+                                      ? "border-red-500"
+                                      : "border-gray-300"
+                              }`
+                    }
+                />
+                {!isWelcome50 && (
                     <button
                         type="button"
                         onClick={sendPhoneVerificationCode}
                         disabled={phoneOtpLoading}
-                        className="min-h-[41px] bg-[#666684] text-white px-4 py-2 rounded-md text-xs sm:text-sm disabled:opacity-70"
+                        className={phoneCodeBtnClass}
                     >
                         {phoneOtpLoading ? t("sending") : t("getCode")}
                     </button>
-                </div>
-                {formik.touched.phone && formik.errors.phone && (
-                    <p className="text-xs text-red-500">{formik.errors.phone}</p>
                 )}
             </div>
+            {formik.touched.phone && formik.errors.phone && (
+                <p className="text-xs text-red-500 mt-1">{formik.errors.phone}</p>
+            )}
+        </div>
+    );
 
-            {/* Country */}
-            <div>
-                <label className={`text-sm ${color} mb-1`}>{t("country")}</label>
-                <Select
-                    name="country"
-                    options={options}
-                    styles={selectStyles}
-                    onChange={(opt, e) => {
-                        console.log({ opt, e })
-                        formik.setFieldValue("country", opt?.value)
-
-                    }}
-                    onBlur={() => formik.setFieldTouched("country", true)}
-                    value={options.find((opt) => opt.value === formik.values.country)}
+    const emailField = (
+        <div>
+            <label className={labelClass}>{t("email")}</label>
+            <div className="relative">
+                <input
+                    type="email"
+                    placeholder={placeholder("email")}
+                    {...formik.getFieldProps("email")}
+                    className={`${inputClass(formik.touched.email && formik.errors.email)} ${isWelcome50 ? "pr-[108px]" : ""}`}
                 />
-                {formik.touched.country && formik.errors.country && (
-                    <p className="text-xs text-red-500">{formik.errors.country}</p>
+                <button
+                    type="button"
+                    onClick={sendVerificationCode}
+                    disabled={otpLoading}
+                    className={codeBtnClass}
+                >
+                    {otpLoading ? t("sending") : t("getCode")}
+                </button>
+            </div>
+            {formik.touched.email && formik.errors.email && (
+                <p className="text-xs text-red-500 mt-1">{formik.errors.email}</p>
+            )}
+        </div>
+    );
+
+    const otpField = showOtpSection && (
+        <div>
+            <label className={labelClass}>{isWelcome50 ? t("verificationCode") : t("otp")}</label>
+            <OtpInput
+                value={formik.values.otp}
+                onChange={(otp) => {
+                    formik.setFieldValue("otp", otp);
+                    if (otp?.length == 6) {
+                        verifyOtpCode(otp);
+                    }
+                }}
+                numInputs={6}
+                containerStyle={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: isWelcome50 ? "8px" : "3px",
+                }}
+                isInputNum
+                renderInput={(props) => (
+                    <input
+                        {...props}
+                        type="tel"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                    />
                 )}
+                inputStyle={
+                    isWelcome50
+                        ? {
+                              width: "44px",
+                              height: "44px",
+                              fontSize: "16px",
+                              borderRadius: "8px",
+                              padding: 0,
+                              textAlign: "center",
+                              backgroundColor: "#fff",
+                              color: "#111827",
+                              fontWeight: "600",
+                              outline: "none",
+                              border:
+                                  formik.touched.otp && formik.errors.otp
+                                      ? "1px solid #ef4444"
+                                      : "1px solid #e2e8f0",
+                          }
+                        : {
+                              fontSize: "16px",
+                              borderRadius: "5px",
+                              paddingBottom: "10px",
+                              paddingTop: "10px",
+                              width: "15%",
+                              backgroundColor: "#fff",
+                              color: "#666684",
+                              fontWeight: "700",
+                              outlineColor: "#666684",
+                              border:
+                                  formik.touched.otp && formik.errors.otp
+                                      ? "1px solid red"
+                                      : "1px solid #666684",
+                          }
+                }
+            />
+            {formik.touched.otp && formik.errors.otp && (
+                <p className="text-xs text-red-500 mt-1">{formik.errors.otp}</p>
+            )}
+        </div>
+    );
+
+    const countryField = (
+        <div>
+            <label className={labelClass}>{t("country")}</label>
+            <Select
+                name="country"
+                options={options}
+                styles={isWelcome50 ? welcome50SelectStyles : selectStyles}
+                onChange={(opt) => {
+                    formik.setFieldValue("country", opt?.value);
+                }}
+                onBlur={() => formik.setFieldTouched("country", true)}
+                value={options.find((opt) => opt.value === formik.values.country)}
+            />
+            {formik.touched.country && formik.errors.country && (
+                <p className="text-xs text-red-500 mt-1">{formik.errors.country}</p>
+            )}
+        </div>
+    );
+
+    const passwordField = (fieldKey, show, setShow) => (
+        <div>
+            <label className={labelClass}>{t(fieldKey)}</label>
+            <div className="relative">
+                <input
+                    type={show ? "text" : "password"}
+                    placeholder={placeholder(fieldKey === "password" ? "password" : "confirmPassword")}
+                    {...formik.getFieldProps(fieldKey === "password" ? "password" : "confirmPassword")}
+                    className={`${inputClass(formik.touched[fieldKey === "password" ? "password" : "confirmPassword"] && formik.errors[fieldKey === "password" ? "password" : "confirmPassword"])} pr-10`}
+                />
+                <button
+                    type="button"
+                    onClick={() => setShow(!show)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9ca3af] hover:text-[#64748b]"
+                >
+                    {show ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+                </button>
             </div>
+            {formik.touched[fieldKey === "password" ? "password" : "confirmPassword"] &&
+                formik.errors[fieldKey === "password" ? "password" : "confirmPassword"] && (
+                    <p className="text-xs text-red-500 mt-1">
+                        {formik.errors[fieldKey === "password" ? "password" : "confirmPassword"]}
+                    </p>
+                )}
+        </div>
+    );
 
-            {/* Password + Confirm Password */}
-            <div className="grid sm:grid-cols-1 gap-4">
-                {/* Password */}
-                <div className="relative">
-                    <label className={`text-sm ${color} mb-1`}>{t("password")}</label>
-                    <input
-                        type={showPassword ? "text" : "password"}
-                        placeholder={t("password")}
-                        {...formik.getFieldProps("password")}
-                        className={`w-full border px-3 py-2 ${isMobile ? "bg-[#33335b]" : ""} rounded-md pr-10 ${formik.touched.password && formik.errors.password
-                            ? "border-red-500"
-                            : "border-gray-300"
-                            }`}
-                    />
-                    <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-9 text-gray-500"
-                    >
-                        {showPassword ? <FaEyeSlash /> : <FaEye />}
-                    </button>
-                    {formik.touched.password && formik.errors.password && (
-                        <p className="text-xs text-red-500">{formik.errors.password}</p>
-                    )}
-                </div>
+    return (
+        <form onSubmit={formik.handleSubmit} className={isWelcome50 ? "space-y-4" : "space-y-4"}>
+            {nameFields}
 
-                {/* Confirm Password */}
-                <div className="relative">
-                    <label className={`text-sm ${color} mb-1`}>{t("confirmPassword")}</label>
-                    <input
-                        type={showConfirmPassword ? "text" : "password"}
-                        {...formik.getFieldProps("confirmPassword")}
-                        placeholder={t("confirmPassword")}
-                        className={`w-full border px-3 py-2 ${isMobile ? "bg-[#33335b]" : ""} rounded-md pr-10 ${formik.touched.confirmPassword && formik.errors.confirmPassword
-                            ? "border-red-500"
-                            : "border-gray-300"
-                            }`}
-                    />
-                    <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 top-9 text-gray-500"
-                    >
-                        {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                    </button>
-                    {formik.touched.confirmPassword && formik.errors.confirmPassword && (
-                        <p className="text-xs text-red-500">{formik.errors.confirmPassword}</p>
-                    )}
-                </div>
-
-            </div>
+            {isWelcome50 ? (
+                <>
+                    {phoneField}
+                    {emailField}
+                    {otpField}
+                    {countryField}
+                    {passwordField("password", showPassword, setShowPassword)}
+                    {passwordField("confirmPassword", showConfirmPassword, setShowConfirmPassword)}
+                </>
+            ) : (
+                <>
+                    {emailField}
+                    {otpField}
+                    {phoneField}
+                    {countryField}
+                    <div className="grid sm:grid-cols-1 gap-4">
+                        {passwordField("password", showPassword, setShowPassword)}
+                        {passwordField("confirmPassword", showConfirmPassword, setShowConfirmPassword)}
+                    </div>
+                </>
+            )}
 
             {/* Invitation */}
             <div>
-                <label className={`text-sm ${color} mb-1`}>{t("code")}</label>
+                <label className={labelClass}>{t("code")}</label>
                 <input
-                    disabled
+                    disabled={!isWelcome50}
                     type="text"
+                    placeholder={isWelcome50 ? placeholder("invitation") : undefined}
                     {...formik.getFieldProps("invitation")}
-                    className={`w-full border px-3 py-2 ${isMobile ? "bg-[#33335b]" : ""}  rounded-md border-gray-300`}
+                    className={
+                        isWelcome50
+                            ? inputClass(false)
+                            : `w-full border px-3 py-2 ${isMobile ? "bg-[#33335b]" : ""} rounded-md border-gray-300`
+                    }
                 />
             </div>
 
             {/* Terms */}
-            <div className="flex items gap-2">
+            <div className="flex items-start gap-2.5 pt-0.5">
                 <input
                     type="checkbox"
                     id="terms"
                     {...formik.getFieldProps("terms")}
-                    className="h-5 w-5"
+                    checked={formik.values.terms}
+                    className={`${isWelcome50 ? "h-4 w-4 mt-0.5 shrink-0 accent-[#2563eb] rounded border-[#d1d5db]" : "h-5 w-5"}`}
                 />
-                <label htmlFor="terms" className="text-xs">
-                    By submitting your application you confirm that you have read, understood and agreed to all the <a className="text-secondary" data-v-30779926="" href="https://www.gtcfx.com/terms-and-conditions" target="_blank">Terms And Conditions</a>, <a  className="text-secondary" data-v-30779926="" href="https://gtcfx-bucket.s3.ap-southeast-1.amazonaws.com/pdf-files/Lucky+Terms+And+Conditions.pdf" target="_blank" class="link">Bonus Terms and Conditions</a> and <a  className="text-secondary" data-v-30779926="" href="https://www.gtcfx.com/legal-policies-client-agreements" target="_blank" class="link">Client Agreement .</a>
+                <label htmlFor="terms" className={isWelcome50 ? "text-[12px] leading-[1.65] text-[#64748b]" : "text-xs"}>
+                    {isWelcome50 ? (
+                        <>
+                            {t("termsPrefix")}{" "}
+                            <a
+                                className="text-[#2563eb] underline underline-offset-2"
+                                href="https://www.gtcfx.com/terms-and-conditions"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                {t("termsAndConditions")}
+                            </a>
+                            ,{" "}
+                            <a
+                                className="text-[#2563eb] underline underline-offset-2"
+                                href="https://gtcfx-bucket.s3.ap-southeast-1.amazonaws.com/pdf-files/Lucky+Terms+And+Conditions.pdf"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                {t("termsBonus")}
+                            </a>{" "}
+                            {locale === "ar" ? "و" : "and"}{" "}
+                            <a
+                                className="text-[#2563eb] underline underline-offset-2"
+                                href="https://www.gtcfx.com/legal-policies-client-agreements"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                {t("termsClient")}
+                            </a>
+                            .
+                        </>
+                    ) : (
+                        <>
+                            By submitting your application you confirm that you have read, understood and agreed to all the{" "}
+                            <a className="text-secondary" href="https://www.gtcfx.com/terms-and-conditions" target="_blank">
+                                Terms And Conditions
+                            </a>
+                            ,{" "}
+                            <a
+                                className="text-secondary"
+                                href="https://gtcfx-bucket.s3.ap-southeast-1.amazonaws.com/pdf-files/Lucky+Terms+And+Conditions.pdf"
+                                target="_blank"
+                            >
+                                Bonus Terms and Conditions
+                            </a>{" "}
+                            and{" "}
+                            <a className="text-secondary" href="https://www.gtcfx.com/legal-policies-client-agreements" target="_blank">
+                                Client Agreement .
+                            </a>
+                        </>
+                    )}
                 </label>
             </div>
             {formik.touched.terms && formik.errors.terms && (
@@ -612,13 +843,17 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false }) => {
             )}
 
             {/* Submit */}
-            <button 
+            <button
                 type="submit"
                 disabled={loading}
-                className={`w-full  ${isMobile ? "text-[#000032]" : "text-white"} py-3 rounded-xl font-medium cursor-pointer text-sm disabled:opacity-50`}
-                style={{ background: isMobile ? "#fff" : "linear-gradient(135deg, #293794 0%, #000021 100%)" }}
+                className={
+                    isWelcome50
+                        ? "w-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white h-12 rounded-lg font-bold cursor-pointer text-[15px] disabled:opacity-50 transition-colors shadow-[0_4px_14px_rgba(37,99,235,0.35)] mt-1"
+                        : `w-full ${isMobile ? "text-[#000032]" : "text-white"} py-3 rounded-xl font-medium cursor-pointer text-sm disabled:opacity-50`
+                }
+                style={isWelcome50 ? undefined : { background: isMobile ? "#fff" : "linear-gradient(135deg, #293794 0%, #000021 100%)" }}
             >
-                {loading ? "Submitting.." : t("btnText")}
+                {loading ? t("submitting") : t("btnText")}
             </button>
         </form>
     );
