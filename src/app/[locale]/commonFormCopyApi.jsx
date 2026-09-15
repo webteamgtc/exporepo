@@ -131,34 +131,35 @@ const Welcome50CountrySelect = ({ value, onChange, options, disabled, readOnly }
     const menu =
         open && typeof document !== "undefined"
             ? createPortal(
-                <ul
-                    id="welcome50-country-menu"
-                    role="listbox"
-                    aria-label="Phone number country"
-                    style={menuStyle}
-                    className="max-h-52 overflow-y-auto rounded-lg border border-[#e2e8f0] bg-white py-1 shadow-lg"
-                >
-                    {countryOptions.map(({ value: countryValue, label }) => (
-                        <li key={countryValue}>
-                            <button
-                                type="button"
-                                role="option"
-                                aria-selected={countryValue === value}
-                                onClick={() => {
-                                    onChange(countryValue);
-                                    setOpen(false);
-                                }}
-                                className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm text-[#111827] hover:bg-[#f1f5f9] ${countryValue === value ? "bg-[#eff6ff] font-semibold" : ""
-                                    }`}
-                            >
-                                <span>{label}</span>
-                                <span className="text-[#64748b]">+{getCountryCallingCode(countryValue)}</span>
-                            </button>
-                        </li>
-                    ))}
-                </ul>,
-                document.body
-            )
+                  <ul
+                      id="welcome50-country-menu"
+                      role="listbox"
+                      aria-label="Phone number country"
+                      style={menuStyle}
+                      className="max-h-52 overflow-y-auto rounded-lg border border-[#e2e8f0] bg-white py-1 shadow-lg"
+                  >
+                      {countryOptions.map(({ value: countryValue, label }) => (
+                          <li key={countryValue}>
+                              <button
+                                  type="button"
+                                  role="option"
+                                  aria-selected={countryValue === value}
+                                  onClick={() => {
+                                      onChange(countryValue);
+                                      setOpen(false);
+                                  }}
+                                  className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm text-[#111827] hover:bg-[#f1f5f9] ${
+                                      countryValue === value ? "bg-[#eff6ff] font-semibold" : ""
+                                  }`}
+                              >
+                                  <span>{label}</span>
+                                  <span className="text-[#64748b]">+{getCountryCallingCode(countryValue)}</span>
+                              </button>
+                          </li>
+                      ))}
+                  </ul>,
+                  document.body
+              )
             : null;
 
     return (
@@ -323,7 +324,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
                 .min(6, ("Min Password"))
                 .required(t("errors.passwordRequired")),
             confirmPassword: Yup.string()
-                .oneOf([Yup.ref("password")], t("errors.passwordMatch"))
+                .oneOf([Yup.ref("password")], t("errors.passwordMatch")) 
                 .required(t("errors.confirmPasswordRequired")),
             terms: Yup.bool().oneOf([true], t("errors.termsRequired")),
         }),
@@ -337,6 +338,84 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
                     formik.resetForm();
                     return;
                 }
+
+                const areaCode = dialCodeByAlpha2[values?.country]
+                // 1) create CRM client
+                const res = await fetch("/api/create-client", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        user_account_type: 0,
+                        country: values?.country,
+                        first_name: values?.nickname,
+                        last_name: values?.last_name,
+                        email: values?.email,
+                        area_code: areaCode ?? values?.country ?? "92",   // use dial code, not country ISO
+                        phone: values?.phone,
+                        pwd: values?.password,
+                        token: values?.invitation
+                    }),
+                });
+
+                const createData = await res.json();
+                if (!res.ok || createData?.ret_code !== 0) {
+                    console.error("Create client failed:", createData);
+                    toast.error(createData?.ret_msg || "Create client failed");
+                    return
+                }
+
+                const client_id =
+                    createData?.ret_msg?.client_id ??
+                    createData?.client_id;
+
+                // 2) create MT account
+                const payloadAddUser = {
+                    client_id,
+                    name: values?.nickname,
+                    comment: "Forex Expo Dubai 2025",
+                    account_type: 0,           // 0=trading, 2=agent
+                    manager_id: 3,             // 1=MT4, 3=MT5
+                    // ESCAPE backslashes in JS string:
+                    account_group: "real\\OZ\\MKT\\USC-XSCP00000-V",
+                    leverage: 100,             // confirm format (100 vs "1:100")
+                    // master_pwd: values?.password,      // optional
+                    // investor_pwd: "ViewOnly123",       // optional
+                };
+
+                const res2 = await fetch("/api/create-mt", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payloadAddUser),
+                });
+
+                const mtData = await res2.json();
+                if (!res2.ok || mtData?.ret_code !== 0) {
+                    console.error("Create MT account failed:", mtData);
+                    toast.error(mtData?.ret_msg || "Create MT account failed");
+                    return
+                }
+
+                if (countryData?.country == "AE" && isDubaiDaySixOrSeven() && countryData?.country == values?.country) {
+                    const userUpdate = await axios.post(`/api/mt5-server`, {
+                        Login: mtData?.ret_msg?.login,
+                        Comment: "Forex Expo Dubai 2025"
+                    })
+                }
+
+                // 3) continue your flow
+                await axios.post("/api/email", JSON.stringify({
+                    name: values?.nickname,
+                    invest_password: mtData?.ret_msg?.investor_pwd,
+                    password: mtData?.ret_msg?.master_pwd,
+                    user: mtData?.ret_msg?.login,
+                    email: values?.email,
+                    locale
+                }));
+                await axios.post(zapierUrl, JSON.stringify(values));
+                toast.success(t("thankYou1"));
+                localStorage.setItem("user", JSON.stringify(values));
+                router.push(successPath);
+                formik.resetForm();
             } catch (err) {
                 console.error(err);
                 toast.error(err || "Something went wrong");
@@ -427,10 +506,12 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
         : `text-sm ${color} mb-1`;
     const inputClass = (hasError) =>
         isWelcome50
-            ? `w-full h-11 border rounded-lg px-3 text-sm text-[#111827] placeholder:text-[#9ca3af] bg-white focus:outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/20 ${hasError ? "border-red-500" : "border-[#e2e8f0]"
-            }`
-            : `w-full border px-3 py-2 rounded-md ${isMobile ? "bg-[#33335b]" : ""} ${hasError ? "border-red-500" : "border-gray-300"
-            }`;
+            ? `w-full h-11 border rounded-lg px-3 text-sm text-[#111827] placeholder:text-[#9ca3af] bg-white focus:outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/20 ${
+                  hasError ? "border-red-500" : "border-[#e2e8f0]"
+              }`
+            : `w-full border px-3 py-2 rounded-md ${isMobile ? "bg-[#33335b]" : ""} ${
+                  hasError ? "border-red-500" : "border-gray-300"
+              }`;
     const codeBtnClass = isWelcome50
         ? `absolute top-1/2 -translate-y-1/2 ${locale == "ar" ? "left-2" : "right-2"} bg-[#f1f5f9] hover:bg-[#e2e8f0] text-[#475569] px-3 py-1.5 rounded-md text-xs font-semibold transition-colors disabled:opacity-60`
         : `absolute min-h-[41px] top-0 ${locale == "ar" ? "left-0" : "right-0"} bg-[#666684] text-white px-3 py-1 rounded-md text-xs`;
@@ -490,10 +571,11 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
                     className={
                         isWelcome50
                             ? `PhoneInput welcome50-phone w-full ${formik.touched.phone && formik.errors.phone ? "phone-error" : ""}`
-                            : `flex-1 border px-3 py-2 ${isMobile ? "bg-[#33335b]" : ""} rounded-md ${formik.touched.phone && formik.errors.phone
-                                ? "border-red-500"
-                                : "border-gray-300"
-                            }`
+                            : `flex-1 border px-3 py-2 ${isMobile ? "bg-[#33335b]" : ""} rounded-md ${
+                                  formik.touched.phone && formik.errors.phone
+                                      ? "border-red-500"
+                                      : "border-gray-300"
+                              }`
                     }
                 />
                 {!isWelcome50 && (
@@ -567,36 +649,36 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
                 inputStyle={
                     isWelcome50
                         ? {
-                            width: "44px",
-                            height: "44px",
-                            fontSize: "16px",
-                            borderRadius: "8px",
-                            padding: 0,
-                            textAlign: "center",
-                            backgroundColor: "#fff",
-                            color: "#111827",
-                            fontWeight: "600",
-                            outline: "none",
-                            border:
-                                formik.touched.otp && formik.errors.otp
-                                    ? "1px solid #ef4444"
-                                    : "1px solid #e2e8f0",
-                        }
+                              width: "44px",
+                              height: "44px",
+                              fontSize: "16px",
+                              borderRadius: "8px",
+                              padding: 0,
+                              textAlign: "center",
+                              backgroundColor: "#fff",
+                              color: "#111827",
+                              fontWeight: "600",
+                              outline: "none",
+                              border:
+                                  formik.touched.otp && formik.errors.otp
+                                      ? "1px solid #ef4444"
+                                      : "1px solid #e2e8f0",
+                          }
                         : {
-                            fontSize: "16px",
-                            borderRadius: "5px",
-                            paddingBottom: "10px",
-                            paddingTop: "10px",
-                            width: "15%",
-                            backgroundColor: "#fff",
-                            color: "#666684",
-                            fontWeight: "700",
-                            outlineColor: "#666684",
-                            border:
-                                formik.touched.otp && formik.errors.otp
-                                    ? "1px solid red"
-                                    : "1px solid #666684",
-                        }
+                              fontSize: "16px",
+                              borderRadius: "5px",
+                              paddingBottom: "10px",
+                              paddingTop: "10px",
+                              width: "15%",
+                              backgroundColor: "#fff",
+                              color: "#666684",
+                              fontWeight: "700",
+                              outlineColor: "#666684",
+                              border:
+                                  formik.touched.otp && formik.errors.otp
+                                      ? "1px solid red"
+                                      : "1px solid #666684",
+                          }
                 }
             />
             {formik.touched.otp && formik.errors.otp && (
