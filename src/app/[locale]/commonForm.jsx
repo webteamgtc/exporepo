@@ -284,7 +284,7 @@ const CommonMainForm = ({ successPath, isMobile = false, variant = "default" }) 
             otp: "",
             password: "",
             confirmPassword: "",
-            invitation: urlPartnerCode || "8owwwwwwzcowwwww",
+            invitation: urlPartnerCode || "",
             terms: false,
         },
         enableReinitialize: true,
@@ -401,7 +401,7 @@ const CommonMainForm = ({ successPath, isMobile = false, variant = "default" }) 
     useEffect(() => {
         formik.setFieldValue(
             "invitation",
-            urlPartnerCode || "8owwwwwwzcowwwww"
+            urlPartnerCode || ""
         );
     }, [urlPartnerCode]);
 
