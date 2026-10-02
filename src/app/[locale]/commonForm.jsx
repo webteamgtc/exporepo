@@ -360,7 +360,7 @@ const CommonMainForm = ({ successPath, isMobile = false, variant = "default" }) 
                     password: values.password,
                     lastname: values.last_name,
                     firstname: values.nickname,
-                    serverId:50,
+                    server_id:50,
                     ...(values.invitation?.trim()
                         ? {
                               ref: values.invitation.trim(),
