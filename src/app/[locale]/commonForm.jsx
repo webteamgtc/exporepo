@@ -8,7 +8,6 @@ import PhoneInput, { getCountryCallingCode, isValidPhoneNumber } from "react-pho
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import "react-phone-number-input/style.css";
 import OtpInput from "react-otp-input";
-import { countryList } from "../context/useCountriesDetails";
 import { useLocationDetail } from "../context/useLocationDetail";
 import { toast } from "react-toastify";
 import Select from "react-select";
@@ -16,26 +15,39 @@ import { useTranslations, useLocale } from "next-intl";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
-import { dialCodeByAlpha2 } from "../context/useDialCodes";
 
 // Set NEXT_PUBLIC_SKIP_SUBMIT_APIS=true in .env for local UI-only testing
 const SKIP_SUBMIT_APIS =
     process.env.NEXT_PUBLIC_SKIP_SUBMIT_APIS === "true";
 
-// helper: returns true if today in Dubai is the 6th or 7th
-const isDubaiDaySixOrSeven = () => {
-    const now = new Date();
-    const dayDubai = Number(
-        new Intl.DateTimeFormat("en-GB", {
-            timeZone: "Asia/Dubai",
-            day: "2-digit",
-        }).format(now)
+function getPartnerCodeFromParams(searchParams) {
+    if (!searchParams) return "";
+    return (
+        searchParams.get("code") ||
+        searchParams.get("ref") ||
+        searchParams.get("partner_id") ||
+        searchParams.get("partner_code") ||
+        searchParams.get("ib") ||
+        searchParams.get("token") ||
+        ""
     );
-    return dayDubai === 6 || dayDubai === 7;
-    // If you want ONLY October 6–7, use month check too:
-    // const monthDubai = Number(new Intl.DateTimeFormat("en-GB", { timeZone:"Asia/Dubai", month:"2-digit"}).format(now));
-    // return monthDubai === 10 && (dayDubai === 6 || dayDubai === 7);
-};
+}
+
+function hasCodeOrRefParam(searchParams) {
+    if (!searchParams) return false;
+    return !!(
+        searchParams.get("code") ||
+        searchParams.get("ref") ||
+        searchParams.get("partner_id") ||
+        searchParams.get("partner_code") ||
+        searchParams.get("ib") ||
+        searchParams.get("token")
+    );
+}
+
+function isEmailAvailable(data) {
+    return data?.code === 200 && /available/i.test(data?.message || "");
+}
 
 
 // put above your return()
@@ -201,17 +213,16 @@ const welcome50SelectStyles = {
 };
 
 
-const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "default" }) => {
+const CommonMainForm = ({ successPath, isMobile = false, variant = "default" }) => {
     const { countryData } = useLocationDetail();
     const [otpLoading, setOtpLoading] = useState(false);
-    const [phoneOtpLoading, setPhoneOtpLoading] = useState(false);
-    const params = useSearchParams()
-    const token = params.get("token")
-    const [showOtp, setShowOtp] = useState(false);
+    const params = useSearchParams();
+    const urlPartnerCode = getPartnerCodeFromParams(params);
+    const partnerCodeReadOnly = hasCodeOrRefParam(params);
+    const [codeSent, setCodeSent] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [isOtpVerified, setIsOtpVerified] = useState(false);
-    const [verifyingOtp, setVerifyingOtp] = useState(false);
-    const [otpVerifyTarget, setOtpVerifyTarget] = useState(null);
+    const [gtcCountries, setGtcCountries] = useState([]);
+    const gtcCountriesRef = useRef([]);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -220,48 +231,38 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
     const t = useTranslations(isWelcome50 ? "newPage.form" : "home.form");
     const locale = useLocale();
 
-    // prepare country options
-    const options = countryList?.map((item) => ({
-        value: item.alpha_2_code,
-        label: (
-            <div className="flex items-center gap-2">
-                <img
-                    src={`https://flagcdn.com/w40/${item.alpha_2_code.toLowerCase()}.png`}
-                    alt={item.en_short_name}
-                    className="w-5 h-4 object-cover"
-                />
-                <span>{item.en_short_name}</span>
-            </div>
-        ),
-    }));
+    useEffect(() => {
+        gtcCountriesRef.current = gtcCountries;
+    }, [gtcCountries]);
 
     useEffect(() => {
-        if (countryData?.country) {
-            const filterData = countryList.find(
-                (item) => item?.en_short_name == countryData.country || item?.alpha_2_code == countryData.country
-            );
-            formik.setFieldValue(
-                "country",
-                filterData ? filterData?.alpha_2_code : ""
-            );
-        }
-        formik.setFieldValue(
-            "invitation",
-            token || "8owwwwwwzcowwwww"
-        );
-    }, [countryData?.country, countryList, params]);
+        axios
+            .post("/api/gtc/get-country")
+            .then((res) => {
+                if (res?.data?.code === 200 && Array.isArray(res.data.data)) {
+                    setGtcCountries(res.data.data);
+                }
+            })
+            .catch(() => {});
+    }, []);
 
-    const getIso2ByCountryName = (name) => {
-        const hit = countryList.find((c) => c.en_short_name === name);
-        return hit?.alpha_2_code;
-    };
+    const countryOptions = [...gtcCountries]
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((item) => ({
+            value: item.name,
+            label: (
+                <div className="flex items-center gap-2">
+                    <img
+                        src={`https://flagcdn.com/w40/${(item.code || "").toLowerCase()}.png`}
+                        alt={item.name}
+                        className="w-5 h-4 object-cover"
+                    />
+                    <span>{item.name}</span>
+                </div>
+            ),
+        }));
 
-    const api = axios.create({
-        baseURL: "https://mygtcportal.com",
-        timeout: 15000,
-    });
-
-    // generate password
+            // generate password
     const generatePassword = (length = 12) => {
         const chars =
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
@@ -279,46 +280,37 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
             email: "",
             phone: "",
             country: "",
+            area: "",
             otp: "",
             password: "",
             confirmPassword: "",
-            invitation: token,
+            invitation: urlPartnerCode || "8owwwwwwzcowwwww",
             terms: false,
         },
+        enableReinitialize: true,
         validationSchema: Yup.object({
-            nickname: Yup.string().required(t("errors.firstNameRequired")),
-            last_name: Yup.string().required(t("errors.lastNameRequired")),
+            nickname: Yup.string()
+                .matches(/^[A-Za-z\s]+$/, t("errors.firstNameRequired"))
+                .required(t("errors.firstNameRequired")),
+            last_name: Yup.string()
+                .matches(/^[A-Za-z\s]+$/, t("errors.lastNameRequired"))
+                .required(t("errors.lastNameRequired")),
             email: Yup.string()
                 .email(t("errors.emailInvalid"))
-                .required(t("errors.emailRequired"))
-                .test(
-                    "no-plus-sign",
-                    "Email address cannot contain '+'",
-                    (value) => !value || !value.includes("+")
-                ),
+                .required(t("errors.emailRequired")),
             phone: Yup.string()
                 .required(t("errors.phoneRequired"))
                 .test("is-valid-e164", t("errors.phoneInvalid"), (value) => {
                     if (!value) return false;
                     return isValidPhoneNumber(value);
-                })
-                .test(
-                    "matches-selected-country",
-                    "Number doesn’t match selected country",
-                    function (value) {
-                        const selectedIso2 = this.parent.country;
-                        if (!value || !selectedIso2) return true;
-                        const pn = parsePhoneNumberFromString(value);
-                        if (!pn) return false;
-                        return pn.country === selectedIso2;
-                    }
-                ),
+                }),
             country: Yup.string().required(t("errors.countryRequired")),
             otp: Yup.string()
                 .length(6, t("errors.otpLength"))
                 .required(t("errors.otpRequired")),
             password: Yup.string()
-                .min(6, ("Min Password"))
+                .min(8, t("errors.passwordRequired"))
+                .matches(/^(?=.*[A-Za-z])(?=.*\d)/, t("errors.passwordRequired"))
                 .required(t("errors.passwordRequired")),
             confirmPassword: Yup.string()
                 .oneOf([Yup.ref("password")], t("errors.passwordMatch"))
@@ -327,132 +319,138 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
         }),
         onSubmit: async (values) => {
             setLoading(true);
+            const password = generatePassword();
             try {
-                if (!SKIP_SUBMIT_APIS && !isOtpVerified) {
-                    toast.error(t("otpFail") || "Please verify your OTP first.");
-                    return;
-                }
-
                 if (SKIP_SUBMIT_APIS) {
                     toast.success(t("thankYou1"));
                     localStorage.setItem("user", JSON.stringify(values));
                     router.push(successPath);
                     formik.resetForm();
+                    setCodeSent(false);
                     return;
+                }
+
+                if (!codeSent) {
+                    toast.error(t("otpFail"));
+                    return;
+                }
+
+                const selectedCountry = gtcCountriesRef.current.find(
+                    (c) => c.name === values.country
+                );
+                if (!selectedCountry) {
+                    toast.error(t("errors.countryRequired"));
+                    return;
+                }
+
+                const parsedPhone = values.phone
+                    ? parsePhoneNumberFromString(values.phone)
+                    : null;
+                const deepLinkValue = params.get("deep_link_value") || "";
+                const regPayload = {
+                    code: values.otp,
+                    is_company: 0,
+                    area:
+                        parsedPhone?.countryCallingCode ||
+                        selectedCountry.phone_code ||
+                        values.area,
+                    country: selectedCountry.name,
+                    email: values.email,
+                    phone: values.phone || "",
+                    password: values.password,
+                    lastname: values.last_name,
+                    firstname: values.nickname,
+                    serverId:50,
+                    ...(values.invitation?.trim()
+                        ? {
+                              ref: values.invitation.trim(),
+                              invite_code: values.invitation.trim(),
+                          }
+                        : {}),
+                    ...(deepLinkValue.trim()
+                        ? { deep_link_value: deepLinkValue.trim() }
+                        : {}),
+                };
+
+                const res = await axios.post("/api/gtc/reg", regPayload);
+                if (res?.data?.code === 200) {
+                    toast.success(res?.data?.message || t("thankYou1"));
+                    localStorage.setItem(
+                        "user",
+                        JSON.stringify({
+                            ...values,
+                            firstname: values.nickname,
+                            lastname: values.last_name,
+                        })
+                    );
+                    router.push(successPath);
+                    formik.resetForm();
+                    setCodeSent(false);
+                } else {
+                    toast.error(res?.data?.message || t("otpFail"));
                 }
             } catch (err) {
                 console.error(err);
-                toast.error(err || "Something went wrong");
+                toast.error(err?.response?.data?.message || t("otpFail"));
             } finally {
                 setLoading(false);
             }
-
         },
     });
 
-    // send OTP
-    const sendVerificationCode = () => {
-        if (!formik.values.email) {
-            toast.error(t("errors.emailRequired"));
+    useEffect(() => {
+        formik.setFieldValue(
+            "invitation",
+            urlPartnerCode || "8owwwwwwzcowwwww"
+        );
+    }, [urlPartnerCode]);
+
+    useEffect(() => {
+        if (countryData?.country && gtcCountries.length > 0) {
+            const match = gtcCountries.find((c) => c.code === countryData.country);
+            if (match) {
+                formik.setFieldValue("country", match.name);
+                formik.setFieldValue("area", match.phone_code || "");
+            }
+        }
+    }, [countryData?.country, gtcCountries]);
+
+    const sendVerificationCode = async () => {
+        await formik.setFieldTouched("email", true);
+        const emailError = await formik.validateField("email");
+        if (emailError || !formik.values.email) {
+            toast.error(emailError || t("errors.emailRequired"));
             return;
         }
+
         setOtpLoading(true);
-        axios
-            .post(`/api/otp-smtp`, {
-                email: formik.values.email,
-                first_name: formik.values.nickname,
-                type: "0",
-                locale,
-            })
-            .then((res) => {
-                if (res?.data?.success) {
-                    setShowOtp(true);
-                    setOtpVerifyTarget({ type: "email", value: formik.values.email });
-                    setIsOtpVerified(false);
-                    formik.setFieldValue("otp", "");
-                    toast.success(t("otpSent"));
-                } else {
-                    toast.error(res?.data?.message || t("otpFail"));
-                }
-            })
-            .catch((error) => {
-                console.error(error);
-                toast.error(
-                    error?.response?.data?.message || error?.message || t("otpFail")
-                );
-            })
-            .finally(() => setOtpLoading(false));
-    };
-
-    const sendPhoneVerificationCode = () => {
-        if (!formik.values.phone) {
-            toast.error(t("errors.phoneRequired"));
-            return;
-        }
-        if (!isValidPhoneNumber(formik.values.phone)) {
-            toast.error(t("errors.phoneInvalid"));
-            return;
-        }
-        setPhoneOtpLoading(true);
-        axios
-            .post(`/api/send-phone-otp`, {
-                phone: formik.values.phone,
-                first_name: formik.values.nickname,
-                locale,
-                channel: "whatsapp",
-            })
-            .then((res) => {
-                if (res?.data?.success) {
-                    setShowOtp(true);
-                    setOtpVerifyTarget({ type: "phone", value: formik.values.phone });
-                    setIsOtpVerified(false);
-                    formik.setFieldValue("otp", "");
-                    toast.success(t("otpSent"));
-                } else {
-                    toast.error(res?.data?.message || t("otpFail"));
-                }
-            })
-            .catch((error) => {
-                console.error(error);
-                toast.error(
-                    error?.response?.data?.message || error?.message || t("otpFail")
-                );
-            })
-            .finally(() => setPhoneOtpLoading(false));
-    };
-
-    const verifyOtpCode = async (otp) => {
-        if (!otp || otp.length !== 6) return;
-        if (!otpVerifyTarget) {
-            toast.error(t("otpFail") || "Request an OTP first.");
-            return;
-        }
-
-        setVerifyingOtp(true);
         try {
-            const payload =
-                otpVerifyTarget.type === "phone"
-                    ? { phone: otpVerifyTarget.value, otp }
-                    : { email: otpVerifyTarget.value, otp };
+            const checkRes = await axios.post("/api/gtc/check-email", {
+                email: formik.values.email,
+            });
 
-            const res = await axios.post("/api/verify-otp", payload);
+            if (!isEmailAvailable(checkRes?.data)) {
+                toast.error(checkRes?.data?.message || t("errors.emailInvalid"));
+                return;
+            }
 
-            if (res?.data?.success) {
-                toast.success(t("otpSuccess"));
-                setShowOtp(false);
-                setIsOtpVerified(true);
+            const codeRes = await axios.post("/api/gtc/get-code", {
+                email: formik.values.email,
+                type: "0",
+            });
+
+            if (codeRes?.data?.code === 200) {
+                setCodeSent(true);
+                formik.setFieldValue("otp", "");
+                toast.success(codeRes?.data?.message || t("otpSent"));
             } else {
-                toast.error(res?.data?.message || t("otpFail"));
-                setIsOtpVerified(false);
+                toast.error(codeRes?.data?.message || t("otpFail"));
             }
         } catch (error) {
-            console.error("OTP verification error:", error);
-            toast.error(
-                error?.response?.data?.message || error?.message || t("otpFail")
-            );
-            setIsOtpVerified(false);
+            console.error(error);
+            toast.error(error?.response?.data?.message || t("otpFail"));
         } finally {
-            setVerifyingOtp(false);
+            setOtpLoading(false);
         }
     };
 
@@ -469,11 +467,8 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
     const codeBtnClass = isWelcome50
         ? `absolute top-1/2 -translate-y-1/2 ${locale == "ar" ? "left-2" : "right-2"} bg-[#f1f5f9] hover:bg-[#e2e8f0] text-[#475569] px-3 py-1.5 rounded-md text-xs font-semibold transition-colors disabled:opacity-60`
         : `absolute min-h-[41px] top-0 ${locale == "ar" ? "left-0" : "right-0"} bg-[#666684] text-white px-3 py-1 rounded-md text-xs`;
-    const phoneCodeBtnClass = isWelcome50
-        ? "min-h-[41px] text-[#0066ff] px-4 py-2 text-sm font-medium disabled:opacity-70 whitespace-nowrap"
-        : "min-h-[41px] bg-[#666684] text-white px-4 py-2 rounded-md text-xs sm:text-sm disabled:opacity-70";
     const placeholder = (key) => (isWelcome50 ? t(`placeholders.${key}`) : t(key));
-    const showOtpSection = isWelcome50 || showOtp;
+    const showOtpSection = isWelcome50 || codeSent;
 
     const nameFields = (
         <div className={`grid grid-cols-2 ${isWelcome50 ? "gap-3" : "sm:grid-cols-2 gap-4"}`}>
@@ -515,9 +510,12 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
                     defaultCountry={countryData?.country_code || countryData?.country || "AE"}
                     value={formik.values.phone}
                     onChange={(phone) => formik.setFieldValue("phone", phone)}
-                    onCountryChange={(country) => {
-                        if (isWelcome50 && country) {
-                            formik.setFieldValue("country", country);
+                    onCountryChange={(countryIso2) => {
+                        if (!countryIso2) return;
+                        const match = gtcCountries.find((c) => c.code === countryIso2);
+                        if (match) {
+                            formik.setFieldValue("country", match.name);
+                            formik.setFieldValue("area", match.phone_code || "");
                         }
                     }}
                     placeholder={isWelcome50 ? placeholder("phone") : undefined}
@@ -531,16 +529,6 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
                             }`
                     }
                 />
-                {!isWelcome50 && (
-                    <button
-                        type="button"
-                        onClick={sendPhoneVerificationCode}
-                        disabled={phoneOtpLoading}
-                        className={phoneCodeBtnClass}
-                    >
-                        {phoneOtpLoading ? t("sending") : t("getCode")}
-                    </button>
-                )}
             </div>
             {formik.touched.phone && formik.errors.phone && (
                 <p className="text-xs text-red-500 mt-1">{formik.errors.phone}</p>
@@ -580,9 +568,6 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
                 value={formik.values.otp}
                 onChange={(otp) => {
                     formik.setFieldValue("otp", otp);
-                    if (otp?.length == 6) {
-                        verifyOtpCode(otp);
-                    }
                 }}
                 numInputs={6}
                 containerStyle={{
@@ -645,13 +630,21 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
             <label className={labelClass}>{t("country")}</label>
             <Select
                 name="country"
-                options={options}
+                options={countryOptions}
+                isDisabled={countryOptions.length === 0}
+                placeholder={
+                    countryOptions.length === 0
+                        ? t("country")
+                        : t("country")
+                }
                 styles={isWelcome50 ? welcome50SelectStyles : selectStyles}
                 onChange={(opt) => {
-                    formik.setFieldValue("country", opt?.value);
+                    formik.setFieldValue("country", opt?.value || "");
+                    const match = gtcCountries.find((c) => c.name === opt?.value);
+                    formik.setFieldValue("area", match?.phone_code || "");
                 }}
                 onBlur={() => formik.setFieldTouched("country", true)}
-                value={options.find((opt) => opt.value === formik.values.country)}
+                value={countryOptions.find((opt) => opt.value === formik.values.country)}
             />
             {formik.touched.country && formik.errors.country && (
                 <p className="text-xs text-red-500 mt-1">{formik.errors.country}</p>
@@ -720,6 +713,7 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
                 <label className={labelClass}>{t("code")}</label>
                 <input
                     disabled={!isWelcome50}
+                    readOnly={isWelcome50 && partnerCodeReadOnly}
                     type="text"
                     placeholder={isWelcome50 ? placeholder("invitation") : undefined}
                     {...formik.getFieldProps("invitation")}
@@ -801,7 +795,13 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
             {/* Submit */}
             <button
                 type="submit"
-                disabled={loading || verifyingOtp || (!SKIP_SUBMIT_APIS && !isOtpVerified)}
+                disabled={
+                    loading ||
+                    (!SKIP_SUBMIT_APIS &&
+                        (!codeSent ||
+                            formik.values.otp.length !== 6 ||
+                            !formik.values.terms))
+                }
                 className={
                     isWelcome50
                         ? "w-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white h-12 rounded-lg font-bold cursor-pointer text-[15px] disabled:opacity-50 transition-colors shadow-[0_4px_14px_rgba(37,99,235,0.35)] mt-1"
