@@ -41,7 +41,6 @@ const ThankYouPage = () => {
     return (
         <>
             <Meta title="Your GTC 5,000 US Cent Bonus is Waiting." description="" />
-            <Header />
             <ConfirmationThankYou user={user} />
             <HelpSection />
 
