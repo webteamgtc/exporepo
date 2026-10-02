@@ -349,7 +349,7 @@ const CommonMainForm = ({ successPath, isMobile = false, variant = "default" }) 
                 const deepLinkValue = params.get("deep_link_value") || "";
                 const regPayload = {
                     code: values.otp,
-                    is_company: 0,
+                    type: 0,
                     area:
                         parsedPhone?.countryCallingCode ||
                         selectedCountry.phone_code ||
@@ -360,7 +360,7 @@ const CommonMainForm = ({ successPath, isMobile = false, variant = "default" }) 
                     password: values.password,
                     lastname: values.last_name,
                     firstname: values.nickname,
-                    server_id:50,
+                    activity_code: "wPCNjG",
                     ...(values.invitation?.trim()
                         ? {
                               ref: values.invitation.trim(),
