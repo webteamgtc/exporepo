@@ -795,15 +795,6 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
                                 rel="noopener noreferrer"
                             >
                                 {t("termsAndConditions")}
-                            </a>
-                            ,{" "}
-                            <a
-                                className="text-[#2563eb] underline underline-offset-2"
-                                href="https://gtcfx-bucket.s3.ap-southeast-1.amazonaws.com/pdf-files/Lucky+Terms+And+Conditions.pdf"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                {t("termsBonus")}
                             </a>{" "}
                             {locale === "ar" ? "و" : "and"}{" "}
                             <a
@@ -821,14 +812,6 @@ const CommonMainForm = ({ zapierUrl, successPath, isMobile = false, variant = "d
                             By submitting your application you confirm that you have read, understood and agreed to all the{" "}
                             <a className="text-secondary" href="https://www.gtcfx.com/terms-and-conditions" target="_blank">
                                 Terms And Conditions
-                            </a>
-                            ,{" "}
-                            <a
-                                className="text-secondary"
-                                href="https://gtcfx-bucket.s3.ap-southeast-1.amazonaws.com/pdf-files/Lucky+Terms+And+Conditions.pdf"
-                                target="_blank"
-                            >
-                                Bonus Terms and Conditions
                             </a>{" "}
                             and{" "}
                             <a className="text-secondary" href="https://www.gtcfx.com/legal-policies-client-agreements" target="_blank">

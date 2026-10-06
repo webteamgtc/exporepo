@@ -105,45 +105,43 @@
 
   "newPage": {
     "meta": {
-      "title": "Get $50 USD Trading Bonus | GTC",
-      "description": "Open a GTC Standard account and start trading with a $50 trading bonus. No deposit needed."
+      "title": "Institutional Trading Solutions | GTC",
+      "description": "Liquidity, connectivity, and risk management for the global trading community. Access flexible liquidity, low-latency MT4/MT5 infrastructure, and tools to monitor exposure across multiple asset classes."
     },
     "hero": {
-      "eyebrow": "YOUR TRADING JOURNEY STARTS HERE",
-      "headline1": "A head start.",
-      "headline2": "A world of opportunity.",
-      "bonusAmount": "$50",
-      "bonusLabel1": "USD",
-      "bonusLabel2": "TRADING",
-      "bonusLabel3": "BONUS",
-      "noDeposit": "No deposit needed.",
-      "description": "Open a GTC Standard account and put your next move into motion with a $50 trading bonus.",
-      "termsLink": "Eligibility and bonus terms apply.",
+      "eyebrow": "Liquidity | Connectivity | Risk Management",
+      "headline1": "Institutional",
+      "headline2": "Trading Solutions.",
+      "subheadline": "Built for the Global Trading Community",
+      "highlight1": "Deep Institutional Liquidity",
+      "highlight2": "Across 2,000+ Global Instruments",
+      "highlight3": "8 Asset Classes",
+      "description": "Partner with GTC for technology and liquidity designed to support efficient execution, scalable connectivity, and informed risk decisions.",
       "step1": "Register",
-      "step2": "Activate",
-      "step3": "Start trading",
+      "step2": "Connect",
+      "step3": "Explore solutions",
       "registerCta": "Register now"
     },
     "features": {
-      "eyebrow": "A BETTER WAY TO BEGIN",
-      "title": "Small start. Real possibilities.",
+      "eyebrow": "OUR SOLUTIONS",
+      "title": "Technology and liquidity for institutional trading.",
       "item1": {
-        "title": "Real funds. Real markets.",
-        "desc": "Use your 50 USD to trade real markets & not demo simulations. Trade the real financial markets."
+        "title": "Liquidity Solutions",
+        "desc": "Access flexible liquidity across currencies, metals, indices and commodities, with MT4/MT5 white label solutions tailored to your business needs and trading goals."
       },
       "item2": {
-        "title": "Start without a deposit.",
-        "desc": "Test strategies or explore our trading platform. Your funds stay untouched while using your 50 USD tradable bonus."
+        "title": "Connectivity Solutions",
+        "desc": "Connect to global markets through fast, low-latency infrastructure and MT4/MT5 solutions, with technology designed to support efficient trade execution across multiple assets."
       },
       "item3": {
-        "title": "Know your next step.",
-        "desc": "Register, activate your account, then trade. Review the bonus and withdrawal terms before you begin."
+        "title": "Risk Management",
+        "desc": "Monitor and manage market, credit, operational and liquidity risks with flexible tools designed to help you understand exposure and support informed decisions."
       }
     },
     "form": {
-      "badge": "$50 WELCOME BONUS",
+      "badge": "INSTITUTIONAL SOLUTIONS",
       "title": "Register now",
-      "subtitle": "Create your account to claim your $50 trading bonus.",
+      "subtitle": "Tell us about your business and our team will connect you with the right liquidity and connectivity solutions.",
       "firstName": "First name",
       "lastName": "Last name",
       "email": "Email address",
@@ -155,7 +153,7 @@
       "sending": "Sending...",
       "code": "Invitation code (optional)",
       "submitting": "Submitting...",
-      "btnText": "Get my $50 bonus",
+      "btnText": "Submit registration",
       "password": "Password",
       "confirmPassword": "Confirm password",
       "placeholders": {

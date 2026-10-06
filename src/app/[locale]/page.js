@@ -102,21 +102,7 @@ const StepItem = ({ number, label, active }) => (
   </div>
 );
 
-const CheckIcon = () => (
-  <svg width="10" height="8" viewBox="0 0 10 8" fill="none" aria-hidden="true">
-    <path
-      d="M1 4L3.5 6.5L9 1"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-
-
-export default function WelcomeBonusPage() {
+export default function InstitutionalLandingPage() {
   const t = useTranslations("newPage");
 
   const formCard = (
@@ -148,17 +134,10 @@ export default function WelcomeBonusPage() {
           <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{
-              backgroundImage:
-                "linear-gradient(90deg, rgba(6,12,26,0.92) 0%, rgba(6,12,26,0.75) 45%, rgba(6,12,26,0.55) 100%), url(/bg-new.png)",
+              backgroundImage: "url(/bgcolor.webp)",
               backgroundColor: "#060c1a",
             }}
           />
-          <div className="absolute inset-y-0 right-0 w-full  lg:w-full pointer-events-none opacity-50 lg:opacity-100">
-            <div
-              className="h-full w-full bg-cover bg-right bg-no-repeat"
-              style={{ backgroundImage: "url(/newbanner.webp)" }}
-            />
-          </div>
 
           <div className="relative z-10 max-w-6xl mx-auto px-4 pt-8 pb-8 lg:py-16">
             <div className="grid min-w-0 grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-8 items-stretch">
@@ -166,81 +145,57 @@ export default function WelcomeBonusPage() {
               <div className="flex max-w-xl flex-col lg:min-h-full">
                 <div className="flex shrink-0 items-center gap-3 sm:gap-5">
                   <Image
-                    src="/logo-gtc.svg"
-                    width={179}
-                    height={65}
-                    alt="GTC"
+                    src="/gtcprime.webp"
+                    width={200}
+                    height={72}
+                    alt="GTC Prime"
                     priority
-                    className="h-[40px] sm:h-[56px] lg:h-[65px] w-auto"
+                    className="h-[40px] sm:h-[56px] lg:h-[65px] w-auto object-contain"
                   />
                   <div className="h-10 sm:h-14 lg:h-16 w-px bg-white/35 shrink-0" />
-                  <div className="flex h-[52px] w-[52px] sm:h-[72px] sm:w-[72px] lg:h-[80px] lg:w-[80px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-white">
-                    <Image
-                      src="/logo.png"
-                      width={72}
-                      height={72}
-                      alt="Forex Expo Dubai"
-                      className="h-[44px] w-[44px] sm:h-[58px] sm:w-[58px] lg:h-[64px] lg:w-[64px] object-contain"
-                    />
-                  </div>
+                  <Image
+                    src="/ifx.svg"
+                    width={80}
+                    height={80}
+                    alt="iFX Expo"
+                    className="h-[44px] w-[44px] sm:h-[58px] sm:w-[58px] lg:h-[64px] lg:w-[64px] shrink-0 object-contain"
+                  />
                 </div>
 
                 <div className="mt-10 flex min-h-[40vh] flex-1 flex-col justify-center sm:mt-12 sm:min-h-[36vh] lg:mt-14 lg:min-h-0 lg:py-6">
-                <p className="text-[10px] sm:text-[14px] 2xl:text-[16px] font-medium tracking-[0.18em] text-white uppercase mb-3 sm:mb-4">
+                <p className="text-[10px] sm:text-[12px] 2xl:text-[14px] font-semibold tracking-[0.12em] text-[#93b4e8] uppercase mb-4 sm:mb-5">
                   {t("hero.eyebrow")}
                 </p>
 
-                <h1 className="text-[24px] sm:text-[42px] 2xl:text-[45px] capitalize font-medium leading-[1.09] text-white mb-1">
-                  {t("hero.headline1")}
+                <h1 className="text-[28px] sm:text-[44px] 2xl:text-[52px] font-semibold leading-[1.08] mb-2">
+                  <span className="text-white">{t("hero.headline1")}</span>
                   <br />
-                  {t("hero.headline2")}
+                  <span
+                    className="bg-clip-text text-transparent"
+                    style={goldTextGradient}
+                  >
+                    {t("hero.headline2")}
+                  </span>
                 </h1>
 
-                <div className="flex items-center gap-2.5 sm:gap-4 mb-4 sm:mb-5">
-                  <div className="flex items-start leading-none">
-                    <span
-                      className="text-[28px] sm:text-[40px] 2xl:text-[60px] font-semibold mt-2 sm:mt-4 bg-clip-text text-transparent"
-                      style={goldTextGradient}
-                    >
-                      $
-                    </span>
-                    <span
-                      className="text-[64px] sm:text-[88px] lg:text-[110px] 2xl:text-[160px] font-semibold leading-none tracking-tight bg-clip-text text-transparent"
-                      style={goldTextGradient}
-                    >
-                      50
-                    </span>
-                  </div>
-                  <div className="pb-1 sm:pb-3 space-y-0.5">
-                    <p className="text-[10px] sm:text-[12px] 2xl:text-[16px] font-semibold tracking-[0.14em] uppercase bg-clip-text leading-tight text-transparent" style={goldTextGradient}>
-                      {t("hero.bonusLabel1")}
-                    </p>
-                    <p className="text-[10px] sm:text-[12px] 2xl:text-[16px] font-semibold tracking-[0.14em] uppercase bg-clip-text leading-tight text-transparent" style={goldTextGradient}>
-                      {t("hero.bonusLabel2")}
-                    </p>
-                    <p className="text-[10px] sm:text-[12px] 2xl:text-[16px] font-semibold tracking-[0.14em] uppercase bg-clip-text leading-tight text-transparent" style={goldTextGradient}>
-                      {t("hero.bonusLabel3")}
-                    </p>
-                  </div>
-                </div>
-
-                <p className="flex items-center gap-2.5 text-[14px] sm:text-[15px] font-semibold text-white mb-3 sm:mb-4">
-                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full border border-white text-white shrink-0">
-                    <CheckIcon />
-                  </span>
-                  {t("hero.noDeposit")}
+                <p className="text-[15px] sm:text-[17px] 2xl:text-[20px] text-white/85 font-medium mb-5 sm:mb-6 max-w-md">
+                  {t("hero.subheadline")}
                 </p>
 
-                <p className="text-[13px] sm:text-[15px] 2xl:text-[18px] text-white/90 leading-relaxed max-w-md mb-1 sm:mb-3">
-                  {t("hero.description")}{" "}
-                  <a
-                    href="https://gtcfx-bucket.s3.ap-southeast-1.amazonaws.com/pdf-files/Lucky+Terms+And+Conditions.pdf"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[13px] sm:text-[15px] 2xl:text-[18px] text-white underline underline-offset-2 hover:text-white/75"
-                  >
-                    {t("hero.termsLink")}
-                  </a>
+                <div className="border-t border-white/20 pt-5 sm:pt-6 mb-5 sm:mb-6 max-w-md space-y-1">
+                  <p className="text-[14px] sm:text-[15px] font-semibold text-[#7eb0ff]">
+                    {t("hero.highlight1")}
+                  </p>
+                  <p className="text-[15px] sm:text-[17px] font-bold text-white">
+                    {t("hero.highlight2")}
+                  </p>
+                  <p className="text-[13px] sm:text-[14px] text-white/60">
+                    {t("hero.highlight3")}
+                  </p>
+                </div>
+
+                <p className="text-[13px] sm:text-[15px] 2xl:text-[17px] text-white/90 leading-relaxed max-w-md mb-1 sm:mb-3">
+                  {t("hero.description")}
                 </p>
 
                 {/* Steps */}
